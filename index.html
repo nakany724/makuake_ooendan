@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>エンターテイナー製作委員会</title>
+<style>
+  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;margin:0;background:#f4f6f5;color:#1f2933}
+  .wrap{max-width:520px;margin:0 auto;padding:16px}
+  h1{font-size:18px;margin:8px 0 12px}
+  h2{font-size:15px;margin:22px 0 8px}
+  p.lead{font-size:13px;color:#667;margin:0 0 14px;line-height:1.6}
+  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+  input[type=date]{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd2d9;border-radius:8px;font-size:15px;background:#fff}
+  .chips label{display:flex;align-items:center;font-weight:400;margin:6px 0;background:#fff;border:1px solid #cbd2d9;border-radius:10px;padding:11px 12px;font-size:14px}
+  .chips input{margin-right:10px;width:auto}
+  button{width:100%;margin-top:20px;padding:14px;border:none;border-radius:10px;background:#06C755;color:#fff;font-size:16px;font-weight:600}
+  button:disabled{background:#9bd6b3}
+  .msg{margin-top:12px;text-align:center;font-size:14px;min-height:20px}
+  .page{display:none}
+  .loading{max-width:520px;margin:0 auto;padding:40px 16px;text-align:center;color:#889}
+  .card{background:#fff;border:1px solid #e1e6ea;border-radius:10px;padding:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  .card .d{font-weight:600;font-size:15px}
+  .card button{width:auto;margin:0;padding:7px 14px;font-size:13px;background:#fff;color:#d64545;border:1px solid #f0b3b3;border-radius:8px;font-weight:400}
+  .empty{color:#889;font-size:13px;text-align:center;padding:10px 0}
+</style>
+</head>
+<body>
+<div class="loading" id="loading">読み込み中…</div>
+
+<!-- ===== ライブのリマインド設定 ===== -->
+<div class="wrap page" id="page-remind">
+  <h1>ライブのリマインド設定</h1>
+  <p class="lead" id="rmd_lead"></p>
+
+  <label>いつ思い出したいですか?（複数選べます）</label>
+  <div class="chips" id="rmd_presets"></div>
+
+  <label>日付で指定する（任意）</label>
+  <input type="date" id="rmd_custom">
+
+  <button id="rmd_send">リマインドを設定する</button>
+  <div class="msg" id="rmd_msg"></div>
+
+  <div id="rmd_list"></div>
+</div>
+
+<!-- ===== 準備中 ===== -->
+<div class="wrap page" id="page-notready">
+  <h1>準備中</h1>
+  <p>この機能はまだ準備中です。</p>
+</div>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+  /* ===== 設定 ===== */
+  var LIFF_ID = "2010741413-WmIydf7M"; // 本番用ミニアプリ
+  var GAS_URL = "https://script.google.com/macros/s/AKfycbwIyBnqwIWqFt8jaIqUF_tjrFB_ZYqgJVX4fUjotBeF-h81kzTn1UGRUNg3anmMfQMhPQ/exec";
+  /* =============== */
+
+  var LIVE_DATE = "2027-06-12";
+  var LIVE_TITLE = "長利和季ワンマンライブ「エンターテイナー Reprise」";
+  var PRESETS = [30, 14, 7, 3, 1];
+  var profile = { userId: "", displayName: "" };
+
+  function showPage(id){
+    document.getElementById('loading').style.display='none';
+    var el=document.getElementById('page-'+id); if(el) el.style.display='block';
+  }
+  function fail(t){ document.getElementById('loading').textContent=t; }
+  function val(id){ var e=document.getElementById(id); return e?e.value:''; }
+  function setMsg(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
+  function pad(n){ return ('0'+n).slice(-2); }
+  function esc(s){ return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+
+  // liff.state / クエリから page を取り出す（エンドポイントにパスは付けない方式）
+  function getPage(){
+    var u=new URL(location.href);
+    var st=u.searchParams.get('liff.state');
+    if(st){ var path=decodeURIComponent(st).split('?')[0].replace(/^\/+/,'');
+            var q=(decodeURIComponent(st).split('?')[1]||'');
+            var p=new URLSearchParams(q).get('page');
+            if(p) return p.toLowerCase();
+            if(path) return path.toLowerCase(); }
+    return (u.searchParams.get('page')||'remind').toLowerCase();
+  }
+
+  liff.init({ liffId: LIFF_ID }).then(function(){
+    if(!liff.isLoggedIn()){ liff.login(); return; }
+    return liff.permission.query('profile').then(function(s){
+      if(s.state==='prompt') return liff.permission.requestAll();
+    }).then(function(){ return liff.getProfile(); });
+  }).then(function(p){
+    if(p) profile=p;
+    var page=getPage();
+    if(page==='remind'){ showPage('remind'); initRemind(); }
+    else showPage('notready');
+  }).catch(function(e){
+    fail('読み込みに失敗しました。もう一度開いてください。');
+  });
+
+  function minusDays(dateStr,n){
+    var p=dateStr.split('-'); var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));
+    d.setUTCDate(d.getUTCDate()-n);
+    return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)+'-'+pad(d.getUTCDate());
+  }
+  function todayStr(){ var d=new Date(); return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+
+  function initRemind(){
+    document.getElementById('rmd_lead').textContent =
+      LIVE_TITLE + '\n（2027年6月12日）のチケット、忘れないように思い出す日を設定できます。設定した日の20時にお知らせします。';
+    var tdy=todayStr();
+    var html=PRESETS.map(function(n){
+      var d=minusDays(LIVE_DATE,n);
+      if(d<tdy) return '';
+      return '<label><input type="checkbox" class="rmd_p" value="'+d+'">'+n+'日前（'+d+'）</label>';
+    }).join('');
+    document.getElementById('rmd_presets').innerHTML = html || '<span class="empty">選べる候補がありません</span>';
+    var c=document.getElementById('rmd_custom'); c.min=tdy; c.max=LIVE_DATE;
+    loadList();
+  }
+
+  function loadList(){
+    fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'getReminds',userId:profile.userId})})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        var list=(res&&res.reminds)||[];
+        if(list.length===0){ document.getElementById('rmd_list').innerHTML=''; return; }
+        document.getElementById('rmd_list').innerHTML =
+          '<h2>設定済みのリマインド</h2>' + list.map(function(x){
+            return '<div class="card"><span class="d">'+esc(x.date)+'</span>'
+              + '<button onclick="delRemind('+x.row+')">取消</button></div>';
+          }).join('');
+      })
+      .catch(function(){});
+  }
+  window.delRemind=function(row){
+    if(!confirm('このリマインドを取り消しますか?')) return;
+    fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'deleteRemind',row:row})})
+      .then(function(r){return r.json();}).then(function(){ loadList(); });
+  };
+
+  document.getElementById('rmd_send').onclick=function(){
+    var dates=[].slice.call(document.querySelectorAll('.rmd_p:checked')).map(function(c){return c.value;});
+    var custom=val('rmd_custom'); if(custom) dates.push(custom);
+    if(dates.length===0){ setMsg('rmd_msg','思い出したい日を1つ以上選んでください。'); return; }
+    var btn=this; btn.disabled=true; setMsg('rmd_msg','設定中…');
+    fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'submitRemind',dates:dates,userName:profile.displayName,userId:profile.userId})})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if(res&&res.ok){
+          setMsg('rmd_msg', res.added+'件のリマインドを設定しました。');
+          [].slice.call(document.querySelectorAll('.rmd_p:checked')).forEach(function(c){c.checked=false;});
+          document.getElementById('rmd_custom').value='';
+          btn.disabled=false; loadList();
+        } else { setMsg('rmd_msg','失敗: '+((res&&res.error)||'不明')); btn.disabled=false; }
+      })
+      .catch(function(err){ setMsg('rmd_msg','通信エラー: '+err.message); btn.disabled=false; });
+  };
+</script>
+</body>
+</html>
