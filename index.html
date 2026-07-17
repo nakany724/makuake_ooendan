@@ -99,6 +99,32 @@
   </div>
 </div>
 
+<!-- ===== プレゼントの配送先登録 ===== -->
+<div class="wrap page" id="page-ship">
+  <h1>プレゼントの配送先登録</h1>
+  <p class="lead">ステッカー＆オリジナルフラッグをお送りします。配送先をご登録ください。<br>
+    ご記入いただいた情報は発送のみに使用します。</p>
+
+  <div id="sp_view"></div>
+
+  <div id="sp_form" style="display:none">
+    <label>お名前（配送先のご本人）<span class="req">必須</span></label>
+    <input type="text" id="sp_name" maxlength="40" placeholder="例: 山田 太郎">
+    <label>郵便番号<span class="req">必須</span></label>
+    <input type="text" id="sp_zip" inputmode="numeric" maxlength="8" placeholder="例: 9800001">
+    <label>都道府県<span class="req">必須</span></label>
+    <select id="sp_pref"></select>
+    <label>住所（市区町村・番地）<span class="req">必須</span></label>
+    <input type="text" id="sp_addr" maxlength="80" placeholder="例: 仙台市青葉区中央1-1-1">
+    <label>建物名・部屋番号</label>
+    <input type="text" id="sp_bldg" maxlength="60" placeholder="例: ○○マンション101">
+    <label>電話番号<span class="req">必須</span></label>
+    <input type="text" id="sp_tel" inputmode="numeric" maxlength="15" placeholder="例: 09012345678">
+    <button id="sp_send">この内容で登録する</button>
+    <div class="msg" id="sp_msg"></div>
+  </div>
+</div>
+
 <!-- ===== 紛失連絡 ===== -->
 <div class="wrap page" id="page-lost">
   <h1>チケット紛失のご連絡</h1>
@@ -168,6 +194,7 @@
     if(page==='remind'){ showPage('remind'); initRemind(); }
     else if(page==='ticket'){ showPage('ticket'); initTicket(); }
     else if(page==='lost'){ showPage('lost'); initLost(); }
+    else if(page==='ship'){ showPage('ship'); initShip(); }
     else showPage('notready');
   }).catch(function(e){ fail('読み込みに失敗しました。もう一度開いてください。'); });
 
@@ -366,6 +393,51 @@
       else { ctx.clearRect(0,0,cv.width,cv.height); cv.style.display='none'; }
     })();
   }
+
+  /* ===== 配送 ===== */
+  function initShip(){
+    var pref=document.getElementById('sp_pref');
+    pref.innerHTML='<option value="">選択してください</option>'+PREFS.map(function(p){return '<option>'+p+'</option>';}).join('');
+    post({action:'getMyShip',userId:profile.userId}).then(function(res){
+      if(res&&res.ok&&res.ship){ renderShip(res.ship); }
+      else { document.getElementById('sp_form').style.display='block'; }
+    }).catch(function(){ document.getElementById('sp_form').style.display='block'; });
+  }
+  function renderShip(s){
+    var status = s.status||'未発送';
+    var badge = (status==='発送済み')
+      ? '<span style="color:#06C755;font-weight:700">発送済み</span>' + (s.shippedAt?'<span class="sub">（'+esc(s.shippedAt)+'）</span>':'')
+      : '<span style="color:#c98a00;font-weight:700">準備中</span>';
+    document.getElementById('sp_view').innerHTML =
+      '<h2>ご登録済みの配送先</h2>'
+      + '<div class="card">'
+      + '<div class="d">'+esc(s.name)+'</div>'
+      + '<div class="sub">〒'+esc(s.zip)+'<br>'+esc(s.pref)+esc(s.addr)+(s.bldg?('<br>'+esc(s.bldg)):'')+'<br>TEL '+esc(s.tel)+'</div>'
+      + '</div>'
+      + '<div class="card"><div class="row"><span>発送状況</span>'+badge+'</div></div>'
+      + '<p class="lead" style="margin-top:14px">内容の変更が必要な場合は、このトークでご連絡ください。</p>';
+  }
+  document.getElementById('sp_send').onclick=function(){
+    var name=val('sp_name').trim(), zip=val('sp_zip').trim().replace(/[^0-9]/g,''),
+        pref=val('sp_pref'), addr=val('sp_addr').trim(), bldg=val('sp_bldg').trim(),
+        tel=val('sp_tel').trim().replace(/[^0-9]/g,'');
+    if(!name){ setMsg('sp_msg','お名前を入力してください。'); return; }
+    if(zip.length<7){ setMsg('sp_msg','郵便番号を7桁で入力してください。'); return; }
+    if(!pref){ setMsg('sp_msg','都道府県を選んでください。'); return; }
+    if(!addr){ setMsg('sp_msg','住所を入力してください。'); return; }
+    if(tel.length<10){ setMsg('sp_msg','電話番号を正しく入力してください。'); return; }
+    if(!confirm('この内容で登録します。\n\n'+name+'\n〒'+zip+'\n'+pref+addr+'\n'+bldg+'\nTEL '+tel+'\n\nよろしいですか?')) return;
+    var btn=this; btn.disabled=true; setMsg('sp_msg','送信中…');
+    post({action:'submitShip',name:name,zip:zip,pref:pref,addr:addr,bldg:bldg,tel:tel,userId:profile.userId})
+      .then(function(res){
+        if(res&&res.ok){
+          setMsg('sp_msg','');
+          document.getElementById('sp_form').style.display='none';
+          initShip();
+        } else { setMsg('sp_msg',(res&&res.error)||'登録できませんでした。'); btn.disabled=false; }
+      })
+      .catch(function(err){ setMsg('sp_msg','通信エラー: '+err.message); btn.disabled=false; });
+  };
 
   /* ===== 紛失連絡 ===== */
   function initLost(){
