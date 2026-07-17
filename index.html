@@ -9,9 +9,11 @@
   .wrap{max-width:520px;margin:0 auto;padding:16px}
   h1{font-size:18px;margin:8px 0 12px}
   h2{font-size:15px;margin:22px 0 8px}
-  p.lead{font-size:13px;color:#667;margin:0 0 14px;line-height:1.6}
+  p.lead{font-size:13px;color:#667;margin:0 0 14px;line-height:1.6;white-space:pre-wrap}
   label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
-  input[type=date]{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd2d9;border-radius:8px;font-size:15px;background:#fff}
+  .req{color:#d64545;font-size:11px;margin-left:4px}
+  input,select,textarea{box-sizing:border-box;padding:10px;border:1px solid #cbd2d9;border-radius:8px;font-size:15px;background:#fff;width:100%}
+  textarea{min-height:110px}
   .chips label{display:flex;align-items:center;font-weight:400;margin:6px 0;background:#fff;border:1px solid #cbd2d9;border-radius:10px;padding:11px 12px;font-size:14px}
   .chips input{margin-right:10px;width:auto}
   button{width:100%;margin-top:20px;padding:14px;border:none;border-radius:10px;background:#06C755;color:#fff;font-size:16px;font-weight:600}
@@ -19,30 +21,93 @@
   .msg{margin-top:12px;text-align:center;font-size:14px;min-height:20px}
   .page{display:none}
   .loading{max-width:520px;margin:0 auto;padding:40px 16px;text-align:center;color:#889}
-  .card{background:#fff;border:1px solid #e1e6ea;border-radius:10px;padding:12px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  .card{background:#fff;border:1px solid #e1e6ea;border-radius:10px;padding:12px;margin-bottom:10px}
+  .row{display:flex;align-items:center;justify-content:space-between}
   .card .d{font-weight:600;font-size:15px}
-  .card button{width:auto;margin:0;padding:7px 14px;font-size:13px;background:#fff;color:#d64545;border:1px solid #f0b3b3;border-radius:8px;font-weight:400}
+  .card .sub{font-size:12px;color:#889;margin-top:4px}
+  .card button{width:auto;margin:0;padding:7px 14px;font-size:13px;border-radius:8px}
+  .card button.cancel{background:#fff;color:#d64545;border:1px solid #f0b3b3;font-weight:400}
   .empty{color:#889;font-size:13px;text-align:center;padding:10px 0}
+  #tk_preview{margin-top:8px;max-width:100%;border-radius:8px;display:none}
+  /* くじ演出 */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,25,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:50}
+  .overlay.on{display:flex}
+  .spinner{width:90px;height:90px;border-radius:50%;border:8px solid rgba(255,255,255,.2);border-top-color:#06C755;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay .t{color:#fff;font-size:18px;margin-top:22px;letter-spacing:2px}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
+  .win-badge{font-size:14px;color:#c98a00;font-weight:700;letter-spacing:3px;text-align:center}
+  .win-title{font-size:38px;font-weight:800;margin:6px 0 4px;text-align:center;
+    background:linear-gradient(90deg,#ff8a00,#ff3d77,#8a2be2);-webkit-background-clip:text;background-clip:text;color:transparent;animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
+  .prize-card{margin:14px auto 0;max-width:340px;border-radius:18px;padding:22px 18px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#7b2ff7,#f107a3);box-shadow:0 12px 30px rgba(241,7,163,.35);animation:pop .7s .1s both}
+  .prize-card.onsite{background:linear-gradient(135deg,#11998e,#38ef7d);box-shadow:0 12px 30px rgba(17,153,142,.35)}
+  .prize-card .plabel{font-size:12px;opacity:.85;letter-spacing:2px}
+  .prize-card .pname{font-size:25px;font-weight:800;margin-top:6px;line-height:1.3}
+  .prize-card .pmsg{font-size:13px;margin-top:10px;opacity:.95;line-height:1.6}
+  .prize-card .tk{font-size:24px;font-weight:800;letter-spacing:2px;margin-top:10px}
+  .prize-card .shine{position:absolute;top:-60%;left:-30%;width:60%;height:220%;background:rgba(255,255,255,.25);transform:rotate(25deg);animation:shine 2.2s ease-in-out infinite}
+  @keyframes shine{0%{left:-40%}60%,100%{left:130%}}
+  .lose{text-align:center;padding:24px 6px}
+  .lose .e{font-size:44px}
+  .lose .t{font-size:22px;font-weight:700;color:#66707a;margin:8px 0}
 </style>
 </head>
 <body>
 <div class="loading" id="loading">読み込み中…</div>
 
-<!-- ===== ライブのリマインド設定 ===== -->
+<!-- ===== リマインド設定 ===== -->
 <div class="wrap page" id="page-remind">
   <h1>ライブのリマインド設定</h1>
   <p class="lead" id="rmd_lead"></p>
-
   <label>いつ思い出したいですか?（複数選べます）</label>
   <div class="chips" id="rmd_presets"></div>
-
   <label>日付で指定する（任意）</label>
   <input type="date" id="rmd_custom">
-
   <button id="rmd_send">リマインドを設定する</button>
   <div class="msg" id="rmd_msg"></div>
-
   <div id="rmd_list"></div>
+</div>
+
+<!-- ===== 整理番号の登録／くじ ===== -->
+<div class="wrap page" id="page-ticket">
+  <h1>整理番号の登録</h1>
+  <p class="lead" id="tk_lead">チケットの整理番号を登録できます。当日はここからくじが引けます。</p>
+
+  <div id="tk_form">
+    <label>お名前（ニックネーム可）<span class="req">必須</span></label>
+    <input type="text" id="tk_name" maxlength="20">
+    <label>整理番号<span class="req">必須</span></label>
+    <input type="text" id="tk_ticket" inputmode="numeric" placeholder="例: 0012">
+    <label>整理番号が見える写真<span class="req">必須</span></label>
+    <input type="file" id="tk_file" accept="image/*">
+    <img id="tk_preview">
+    <label>お住まいの都道府県<span class="req">必須</span></label>
+    <select id="tk_pref"></select>
+    <div id="tk_city_wrap" style="display:none">
+      <label>市区町村（宮城県）<span class="req">必須</span></label>
+      <select id="tk_city"></select>
+    </div>
+    <button id="tk_send">登録する</button>
+    <div class="msg" id="tk_msg"></div>
+  </div>
+
+  <div id="tk_list"></div>
+  <div id="tk_result"></div>
+</div>
+
+<!-- ===== 紛失連絡 ===== -->
+<div class="wrap page" id="page-lost">
+  <h1>チケット紛失のご連絡</h1>
+  <p class="lead">チケットを紛失された場合は、状況をお知らせください。運営から個別にご連絡します。</p>
+  <div id="lost_mine"></div>
+  <label>お名前（ニックネーム可）<span class="req">必須</span></label>
+  <input type="text" id="lost_name" maxlength="20">
+  <label>状況・ご連絡内容<span class="req">必須</span></label>
+  <textarea id="lost_text" placeholder="例: 整理番号0012のチケットを紛失しました"></textarea>
+  <button id="lost_send">送信する</button>
+  <div class="msg" id="lost_msg"></div>
 </div>
 
 <!-- ===== 準備中 ===== -->
@@ -51,37 +116,41 @@
   <p>この機能はまだ準備中です。</p>
 </div>
 
+<div class="overlay" id="overlay"><div class="spinner"></div><div class="t">抽選中…</div></div>
+<canvas id="confetti"></canvas>
+
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
   /* ===== 設定 ===== */
-  var LIFF_ID = "2010741413-WmIydf7M"; // 本番用ミニアプリ
+  var LIFF_ID = "2010741413-WmIydf7M";
   var GAS_URL = "https://script.google.com/macros/s/AKfycbwIyBnqwIWqFt8jaIqUF_tjrFB_ZYqgJVX4fUjotBeF-h81kzTn1UGRUNg3anmMfQMhPQ/exec";
   /* =============== */
 
   var LIVE_DATE = "2027-06-12";
   var LIVE_TITLE = "長利和季ワンマンライブ「エンターテイナー Reprise」";
   var PRESETS = [30, 14, 7, 3, 1];
-  var profile = { userId: "", displayName: "" };
+  var PREFS = ["北海道","青森県","岩手県","宮城県","秋田県","山形県","福島県","茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県","新潟県","富山県","石川県","福井県","山梨県","長野県","岐阜県","静岡県","愛知県","三重県","滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県","鳥取県","島根県","岡山県","広島県","山口県","徳島県","香川県","愛媛県","高知県","福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県","沖縄県"];
+  var MIYAGI = ["仙台市青葉区","仙台市宮城野区","仙台市若林区","仙台市太白区","仙台市泉区","石巻市","塩竈市","気仙沼市","白石市","名取市","角田市","多賀城市","岩沼市","登米市","栗原市","東松島市","大崎市","富谷市","蔵王町","七ヶ宿町","大河原町","村田町","柴田町","川崎町","丸森町","亘理町","山元町","松島町","七ヶ浜町","利府町","大和町","大郷町","大衡村","色麻町","加美町","涌谷町","美里町","女川町","南三陸町"];
 
-  function showPage(id){
-    document.getElementById('loading').style.display='none';
-    var el=document.getElementById('page-'+id); if(el) el.style.display='block';
-  }
+  var profile = { userId:"", displayName:"" };
+  var tkImage = null, lotOpen = false;
+
+  function showPage(id){ document.getElementById('loading').style.display='none';
+    var el=document.getElementById('page-'+id); if(el) el.style.display='block'; }
   function fail(t){ document.getElementById('loading').textContent=t; }
   function val(id){ var e=document.getElementById(id); return e?e.value:''; }
   function setMsg(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
   function pad(n){ return ('0'+n).slice(-2); }
-  function esc(s){ return String(s||'').replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+  function post(payload){ return fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)}).then(function(r){return r.json();}); }
 
-  // liff.state / クエリから page を取り出す（エンドポイントにパスは付けない方式）
   function getPage(){
     var u=new URL(location.href);
     var st=u.searchParams.get('liff.state');
-    if(st){ var path=decodeURIComponent(st).split('?')[0].replace(/^\/+/,'');
-            var q=(decodeURIComponent(st).split('?')[1]||'');
-            var p=new URLSearchParams(q).get('page');
+    if(st){ var s=decodeURIComponent(st);
+            var q=(s.split('?')[1]||''); var p=new URLSearchParams(q).get('page');
             if(p) return p.toLowerCase();
-            if(path) return path.toLowerCase(); }
+            var path=s.split('?')[0].replace(/^\/+/,''); if(path) return path.toLowerCase(); }
     return (u.searchParams.get('page')||'remind').toLowerCase();
   }
 
@@ -94,11 +163,12 @@
     if(p) profile=p;
     var page=getPage();
     if(page==='remind'){ showPage('remind'); initRemind(); }
+    else if(page==='ticket'){ showPage('ticket'); initTicket(); }
+    else if(page==='lost'){ showPage('lost'); initLost(); }
     else showPage('notready');
-  }).catch(function(e){
-    fail('読み込みに失敗しました。もう一度開いてください。');
-  });
+  }).catch(function(e){ fail('読み込みに失敗しました。もう一度開いてください。'); });
 
+  /* ===== リマインド ===== */
   function minusDays(dateStr,n){
     var p=dateStr.split('-'); var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));
     d.setUTCDate(d.getUTCDate()-n);
@@ -111,51 +181,181 @@
       LIVE_TITLE + '\n（2027年6月12日）のチケット、忘れないように思い出す日を設定できます。設定した日の20時にお知らせします。';
     var tdy=todayStr();
     var html=PRESETS.map(function(n){
-      var d=minusDays(LIVE_DATE,n);
-      if(d<tdy) return '';
+      var d=minusDays(LIVE_DATE,n); if(d<tdy) return '';
       return '<label><input type="checkbox" class="rmd_p" value="'+d+'">'+n+'日前（'+d+'）</label>';
     }).join('');
     document.getElementById('rmd_presets').innerHTML = html || '<span class="empty">選べる候補がありません</span>';
     var c=document.getElementById('rmd_custom'); c.min=tdy; c.max=LIVE_DATE;
-    loadList();
+    loadRemindList();
   }
-
-  function loadList(){
-    fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'getReminds',userId:profile.userId})})
-      .then(function(r){return r.json();})
-      .then(function(res){
-        var list=(res&&res.reminds)||[];
-        if(list.length===0){ document.getElementById('rmd_list').innerHTML=''; return; }
-        document.getElementById('rmd_list').innerHTML =
-          '<h2>設定済みのリマインド</h2>' + list.map(function(x){
-            return '<div class="card"><span class="d">'+esc(x.date)+'</span>'
-              + '<button onclick="delRemind('+x.row+')">取消</button></div>';
-          }).join('');
-      })
-      .catch(function(){});
+  function loadRemindList(){
+    post({action:'getReminds',userId:profile.userId}).then(function(res){
+      var list=(res&&res.reminds)||[];
+      if(list.length===0){ document.getElementById('rmd_list').innerHTML=''; return; }
+      document.getElementById('rmd_list').innerHTML='<h2>設定済みのリマインド</h2>'+list.map(function(x){
+        return '<div class="card row"><span class="d">'+esc(x.date)+'</span>'
+          +'<button class="cancel" onclick="delRemind('+x.row+')">取消</button></div>';
+      }).join('');
+    }).catch(function(){});
   }
   window.delRemind=function(row){
     if(!confirm('このリマインドを取り消しますか?')) return;
-    fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'deleteRemind',row:row})})
-      .then(function(r){return r.json();}).then(function(){ loadList(); });
+    post({action:'deleteRemind',row:row}).then(function(){ loadRemindList(); });
   };
-
   document.getElementById('rmd_send').onclick=function(){
     var dates=[].slice.call(document.querySelectorAll('.rmd_p:checked')).map(function(c){return c.value;});
     var custom=val('rmd_custom'); if(custom) dates.push(custom);
     if(dates.length===0){ setMsg('rmd_msg','思い出したい日を1つ以上選んでください。'); return; }
     var btn=this; btn.disabled=true; setMsg('rmd_msg','設定中…');
-    fetch(GAS_URL,{method:'POST',body:JSON.stringify({action:'submitRemind',dates:dates,userName:profile.displayName,userId:profile.userId})})
-      .then(function(r){return r.json();})
+    post({action:'submitRemind',dates:dates,userName:profile.displayName,userId:profile.userId})
+      .then(function(res){
+        if(res&&res.ok){ setMsg('rmd_msg',res.added+'件のリマインドを設定しました。');
+          [].slice.call(document.querySelectorAll('.rmd_p:checked')).forEach(function(c){c.checked=false;});
+          document.getElementById('rmd_custom').value=''; btn.disabled=false; loadRemindList();
+        } else { setMsg('rmd_msg','失敗: '+((res&&res.error)||'不明')); btn.disabled=false; }
+      }).catch(function(err){ setMsg('rmd_msg','通信エラー: '+err.message); btn.disabled=false; });
+  };
+
+  /* ===== 整理番号 ／ くじ ===== */
+  function initTicket(){
+    var pref=document.getElementById('tk_pref');
+    pref.innerHTML='<option value="">選択してください</option>'+PREFS.map(function(p){return '<option>'+p+'</option>';}).join('');
+    var city=document.getElementById('tk_city');
+    city.innerHTML='<option value="">選択してください</option>'+MIYAGI.map(function(c){return '<option>'+c+'</option>';}).join('');
+    pref.onchange=function(){ document.getElementById('tk_city_wrap').style.display=(pref.value==='宮城県')?'block':'none'; };
+    document.getElementById('tk_name').value = profile.displayName || '';
+    loadTickets();
+  }
+  document.getElementById('tk_file').onchange=function(e){
+    var f=e.target.files[0]; if(!f) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var max=1400,w=img.width,h=img.height;
+        if(w>max||h>max){ if(w>=h){h=Math.round(h*max/w);w=max;}else{w=Math.round(w*max/h);h=max;} }
+        var c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        tkImage=c.toDataURL('image/jpeg',0.8);
+        var pv=document.getElementById('tk_preview'); pv.src=tkImage; pv.style.display='block';
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(f);
+  };
+  function loadTickets(){
+    post({action:'getMyTickets',userId:profile.userId}).then(function(res){
+      if(!res||!res.ok) return;
+      lotOpen = !!res.open;
+      var list=res.tickets||[];
+      if(list.length===0){ document.getElementById('tk_list').innerHTML=''; return; }
+      document.getElementById('tk_list').innerHTML='<h2>登録済みの整理番号</h2>'+list.map(function(t){
+        var right='';
+        if(t.drawn){ right='<span class="sub">抽選済み：'+esc(t.drawn.name)+'</span>'; }
+        else if(lotOpen){ right='<button onclick="draw(\''+esc(t.ticket)+'\')">くじを引く</button>'; }
+        else { right='<span class="sub">くじは当日16時から</span>'; }
+        return '<div class="card"><div class="row"><span class="d">'+esc(t.ticket)+'</span>'+right+'</div>'
+          + '<div class="sub">'+esc(t.pref||'')+(t.city?(' '+esc(t.city)):'')+'</div></div>';
+      }).join('');
+    }).catch(function(){});
+  }
+  document.getElementById('tk_send').onclick=function(){
+    var name=val('tk_name').trim(), ticket=val('tk_ticket').trim(), pref=val('tk_pref'), city=val('tk_city');
+    if(!name||!ticket){ setMsg('tk_msg','お名前と整理番号は必須です。'); return; }
+    if(!tkImage){ setMsg('tk_msg','整理番号が見える写真を選んでください。'); return; }
+    if(!pref){ setMsg('tk_msg','都道府県を選んでください。'); return; }
+    if(pref==='宮城県'&&!city){ setMsg('tk_msg','市区町村を選んでください。'); return; }
+    var btn=this; btn.disabled=true; setMsg('tk_msg','送信中…');
+    post({action:'saveTicketPhoto',ticket:ticket,imageBase64:tkImage,imageMime:'image/jpeg'})
+      .then(function(r){
+        return post({action:'submitTicket',ticket:ticket,name:name,pref:pref,city:city,
+          photoUrl:(r&&r.url)||'',userId:profile.userId});
+      })
       .then(function(res){
         if(res&&res.ok){
-          setMsg('rmd_msg', res.added+'件のリマインドを設定しました。');
-          [].slice.call(document.querySelectorAll('.rmd_p:checked')).forEach(function(c){c.checked=false;});
-          document.getElementById('rmd_custom').value='';
-          btn.disabled=false; loadList();
-        } else { setMsg('rmd_msg','失敗: '+((res&&res.error)||'不明')); btn.disabled=false; }
+          setMsg('tk_msg','整理番号 '+res.ticket+' を登録しました。');
+          document.getElementById('tk_ticket').value=''; tkImage=null;
+          document.getElementById('tk_preview').style.display='none';
+          document.getElementById('tk_file').value='';
+          btn.disabled=false; loadTickets();
+        } else { setMsg('tk_msg',(res&&res.error)||'登録できませんでした。'); btn.disabled=false; }
       })
-      .catch(function(err){ setMsg('rmd_msg','通信エラー: '+err.message); btn.disabled=false; });
+      .catch(function(err){ setMsg('tk_msg','通信エラー: '+err.message); btn.disabled=false; });
+  };
+  window.draw=function(ticket){
+    document.getElementById('overlay').classList.add('on');
+    var started=Date.now();
+    post({action:'drawLottery',ticket:ticket,name:profile.displayName,userId:profile.userId})
+      .then(function(res){
+        var wait=Math.max(0,2800-(Date.now()-started));
+        setTimeout(function(){
+          document.getElementById('overlay').classList.remove('on');
+          if(!res||!res.ok){ alert((res&&res.error)||'エラーが発生しました'); return; }
+          showResult(res.result, ticket, res.already);
+          loadTickets();
+        }, wait);
+      })
+      .catch(function(err){
+        document.getElementById('overlay').classList.remove('on');
+        alert('通信エラー: '+err.message);
+      });
+  };
+  function showResult(r, ticket, already){
+    var el=document.getElementById('tk_result');
+    if(r.type==='none'){
+      el.innerHTML='<div class="lose"><div class="e">🍀</div><div class="t">はずれ</div><p>'+esc(r.msg||'')+'</p></div>';
+      el.scrollIntoView({behavior:'smooth'}); return;
+    }
+    var cls = (r.type==='onsite') ? 'prize-card onsite' : 'prize-card';
+    el.innerHTML = '<div style="margin-top:18px">'
+      + (already?'':'<div class="win-badge">★ CONGRATULATIONS ★</div>')
+      + '<div class="win-title">'+(already?'当選済み':'当たり！')+'</div>'
+      + '<div class="'+cls+'"><div class="shine"></div>'
+      + '<div class="plabel">当選賞品</div><div class="pname">'+esc(r.name)+'</div>'
+      + (r.msg?'<div class="pmsg">'+esc(r.msg)+'</div>':'')
+      + '<div class="tk">整理番号 '+esc(ticket)+'</div></div></div>';
+    el.scrollIntoView({behavior:'smooth'});
+    if(!already) burst();
+  }
+  function burst(){
+    var cv=document.getElementById('confetti'); cv.style.display='block';
+    cv.width=window.innerWidth; cv.height=window.innerHeight;
+    var ctx=cv.getContext('2d'), colors=['#ff3d77','#ff8a00','#ffd200','#38ef7d','#7b2ff7','#00c6ff'], parts=[];
+    for(var i=0;i<160;i++){ parts.push({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*0.5,
+      w:6+Math.random()*6,h:8+Math.random()*8,c:colors[i%colors.length],
+      vy:2+Math.random()*3,vx:-1.5+Math.random()*3,rot:Math.random()*6,vr:-0.2+Math.random()*0.4}); }
+    var t0=Date.now();
+    (function frame(){
+      ctx.clearRect(0,0,cv.width,cv.height);
+      parts.forEach(function(p){ p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.c;
+        ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore(); });
+      if(Date.now()-t0<4500) requestAnimationFrame(frame);
+      else { ctx.clearRect(0,0,cv.width,cv.height); cv.style.display='none'; }
+    })();
+  }
+
+  /* ===== 紛失連絡 ===== */
+  function initLost(){
+    document.getElementById('lost_name').value = profile.displayName || '';
+    post({action:'getMyTickets',userId:profile.userId}).then(function(res){
+      var list=(res&&res.tickets)||[];
+      if(list.length===0) return;
+      document.getElementById('lost_mine').innerHTML='<h2>登録済みの整理番号</h2>'+list.map(function(t){
+        return '<div class="card"><span class="d">'+esc(t.ticket)+'</span></div>';
+      }).join('');
+    }).catch(function(){});
+  }
+  document.getElementById('lost_send').onclick=function(){
+    var name=val('lost_name').trim(), text=val('lost_text').trim();
+    if(!name||!text){ setMsg('lost_msg','お名前と内容を入力してください。'); return; }
+    var btn=this; btn.disabled=true; setMsg('lost_msg','送信中…');
+    post({action:'submitLost',name:name,text:text,userId:profile.userId})
+      .then(function(res){
+        if(res&&res.ok){ setMsg('lost_msg','送信しました。運営からご連絡します。'); document.getElementById('lost_text').value=''; }
+        else { setMsg('lost_msg','失敗: '+((res&&res.error)||'不明')); btn.disabled=false; }
+      })
+      .catch(function(err){ setMsg('lost_msg','通信エラー: '+err.message); btn.disabled=false; });
   };
 </script>
 </body>
