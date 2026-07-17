@@ -72,10 +72,15 @@
 
 <!-- ===== 整理番号の登録／くじ ===== -->
 <div class="wrap page" id="page-ticket">
-  <h1>整理番号の登録</h1>
-  <p class="lead" id="tk_lead">チケットの整理番号を登録できます。当日はここからくじが引けます。</p>
+  <h1>整理番号の登録/確認</h1>
+  <p class="lead" id="tk_lead">ご自身の整理番号の確認・登録ができます。当日はここからくじが引けます。</p>
 
-  <div id="tk_form">
+  <div id="tk_list"></div>
+  <div id="tk_result"></div>
+
+  <button id="tk_add" style="display:none;background:#fff;color:#06C755;border:2px solid #06C755">＋ 整理番号を追加で登録する</button>
+
+  <div id="tk_form" style="display:none">
     <label>お名前（ニックネーム可）<span class="req">必須</span></label>
     <input type="text" id="tk_name" maxlength="20">
     <label>整理番号<span class="req">必須</span></label>
@@ -92,9 +97,6 @@
     <button id="tk_send">登録する</button>
     <div class="msg" id="tk_msg"></div>
   </div>
-
-  <div id="tk_list"></div>
-  <div id="tk_result"></div>
 </div>
 
 <!-- ===== 紛失連絡 ===== -->
@@ -143,6 +145,7 @@
   function pad(n){ return ('0'+n).slice(-2); }
   function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
   function post(payload){ return fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)}).then(function(r){return r.json();}); }
+  function closeIt(){ try{ if(liff.isInClient()) liff.closeWindow(); }catch(e){} }
 
   function getPage(){
     var u=new URL(location.href);
@@ -248,7 +251,16 @@
       if(!res||!res.ok) return;
       lotOpen = !!res.open;
       var list=res.tickets||[];
-      if(list.length===0){ document.getElementById('tk_list').innerHTML=''; return; }
+      if(list.length===0){
+        // まだ1件もない → フォームを最初から出す
+        document.getElementById('tk_list').innerHTML='';
+        document.getElementById('tk_add').style.display='none';
+        document.getElementById('tk_form').style.display='block';
+        return;
+      }
+      // 登録済みがある → 一覧を出し、フォームは隠して「追加登録」ボタンを出す
+      document.getElementById('tk_form').style.display='none';
+      document.getElementById('tk_add').style.display='block';
       document.getElementById('tk_list').innerHTML='<h2>登録済みの整理番号</h2>'+list.map(function(t){
         var right='';
         if(t.drawn){ right='<span class="sub">抽選済み：'+esc(t.drawn.name)+'</span>'; }
@@ -259,6 +271,14 @@
       }).join('');
     }).catch(function(){});
   }
+  // 「追加で登録する」→ フォームを表示
+  document.getElementById('tk_add').onclick=function(){
+    this.style.display='none';
+    var f=document.getElementById('tk_form');
+    f.style.display='block';
+    setMsg('tk_msg','');
+    f.scrollIntoView({behavior:'smooth',block:'start'});
+  };
   document.getElementById('tk_send').onclick=function(){
     var name=val('tk_name').trim(), ticket=val('tk_ticket').trim(), pref=val('tk_pref'), city=val('tk_city');
     if(!name||!ticket){ setMsg('tk_msg','お名前と整理番号は必須です。'); return; }
@@ -273,10 +293,11 @@
       })
       .then(function(res){
         if(res&&res.ok){
-          setMsg('tk_msg','整理番号 '+res.ticket+' を登録しました。');
+          setMsg('tk_msg','');
           document.getElementById('tk_ticket').value=''; tkImage=null;
           document.getElementById('tk_preview').style.display='none';
           document.getElementById('tk_file').value='';
+          document.getElementById('tk_form').style.display='none';  // 登録後は一覧に戻す
           btn.disabled=false; loadTickets();
         } else { setMsg('tk_msg',(res&&res.error)||'登録できませんでした。'); btn.disabled=false; }
       })
@@ -352,7 +373,11 @@
     var btn=this; btn.disabled=true; setMsg('lost_msg','送信中…');
     post({action:'submitLost',name:name,text:text,userId:profile.userId})
       .then(function(res){
-        if(res&&res.ok){ setMsg('lost_msg','送信しました。運営からご連絡します。'); document.getElementById('lost_text').value=''; }
+        if(res&&res.ok){
+          setMsg('lost_msg','送信しました。運営からご連絡します。');
+          document.getElementById('lost_text').value='';
+          setTimeout(closeIt, 1500);   // 送信後にアプリを閉じる
+        }
         else { setMsg('lost_msg','失敗: '+((res&&res.error)||'不明')); btn.disabled=false; }
       })
       .catch(function(err){ setMsg('lost_msg','通信エラー: '+err.message); btn.disabled=false; });
