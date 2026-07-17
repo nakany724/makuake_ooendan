@@ -246,11 +246,13 @@
     };
     reader.readAsDataURL(f);
   };
+  var myTickets = [];
   function loadTickets(){
     post({action:'getMyTickets',userId:profile.userId}).then(function(res){
       if(!res||!res.ok) return;
       lotOpen = !!res.open;
       var list=res.tickets||[];
+      myTickets = list;
       if(list.length===0){
         // まだ1件もない → フォームを最初から出す
         document.getElementById('tk_list').innerHTML='';
@@ -261,16 +263,23 @@
       // 登録済みがある → 一覧を出し、フォームは隠して「追加登録」ボタンを出す
       document.getElementById('tk_form').style.display='none';
       document.getElementById('tk_add').style.display='block';
-      document.getElementById('tk_list').innerHTML='<h2>登録済みの整理番号</h2>'+list.map(function(t){
+      document.getElementById('tk_list').innerHTML='<h2>登録済みの整理番号</h2>'+list.map(function(t,i){
         var right='';
-        if(t.drawn){ right='<span class="sub">抽選済み：'+esc(t.drawn.name)+'</span>'; }
+        if(t.drawn){ right='<button class="cancel" style="color:#7b2ff7;border-color:#d7bff7" onclick="showDrawn('+i+')">結果を見る</button>'; }
         else if(lotOpen){ right='<button onclick="draw(\''+esc(t.ticket)+'\')">くじを引く</button>'; }
         else { right='<span class="sub">くじは当日16時から</span>'; }
+        var sub = esc(t.pref||'')+(t.city?(' '+esc(t.city)):'');
+        if(t.drawn) sub += '　抽選済み：'+esc(t.drawn.name);
         return '<div class="card"><div class="row"><span class="d">'+esc(t.ticket)+'</span>'+right+'</div>'
-          + '<div class="sub">'+esc(t.pref||'')+(t.city?(' '+esc(t.city)):'')+'</div></div>';
+          + '<div class="sub">'+sub+'</div></div>';
       }).join('');
     }).catch(function(){});
   }
+  // 抽選済みの結果をあとから表示（演出なし）
+  window.showDrawn=function(i){
+    var t=myTickets[i]; if(!t||!t.drawn) return;
+    showResult(t.drawn, t.ticket, true);
+  };
   // 「追加で登録する」→ フォームを表示
   document.getElementById('tk_add').onclick=function(){
     this.style.display='none';
@@ -323,8 +332,10 @@
   };
   function showResult(r, ticket, already){
     var el=document.getElementById('tk_result');
+    var when = r.at ? '<div style="text-align:center;font-size:12px;color:#889;margin-top:8px">抽選日時：'+esc(r.at)+'</div>' : '';
     if(r.type==='none'){
-      el.innerHTML='<div class="lose"><div class="e">🍀</div><div class="t">はずれ</div><p>'+esc(r.msg||'')+'</p></div>';
+      el.innerHTML='<div class="lose"><div class="e">🍀</div><div class="t">はずれ</div><p>'+esc(r.msg||'')+'</p>'
+        +'<div class="sub">整理番号 '+esc(ticket)+'</div></div>'+when;
       el.scrollIntoView({behavior:'smooth'}); return;
     }
     var cls = (r.type==='onsite') ? 'prize-card onsite' : 'prize-card';
@@ -334,7 +345,7 @@
       + '<div class="'+cls+'"><div class="shine"></div>'
       + '<div class="plabel">当選賞品</div><div class="pname">'+esc(r.name)+'</div>'
       + (r.msg?'<div class="pmsg">'+esc(r.msg)+'</div>':'')
-      + '<div class="tk">整理番号 '+esc(ticket)+'</div></div></div>';
+      + '<div class="tk">整理番号 '+esc(ticket)+'</div></div>' + when + '</div>';
     el.scrollIntoView({behavior:'smooth'});
     if(!already) burst();
   }
