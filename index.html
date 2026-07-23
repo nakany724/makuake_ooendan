@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>エンターテイナー製作委員会</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Outfit:wght@400;600;700;800&family=Shippori+Mincho+B1:wght@700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#ffffff;
@@ -15,14 +18,21 @@
     --accent-soft:rgba(250,35,59,.10);
     --radius:14px;
     --shadow:0 1px 3px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+    /* フォント（好みで下の候補に差し替え可）
+       ・和文をもっと情緒的に → "Shippori Mincho B1", serif
+       ・欧文を別候補に      → Inter / Manrope など */
+    --font: "Outfit","Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+    --font-mincho: "Shippori Mincho B1","Hiragino Mincho ProN",serif;
   }
   *{-webkit-tap-highlight-color:transparent}
   html,body{margin:0;background:var(--bg);color:var(--fg);
-    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
-    -webkit-font-smoothing:antialiased;}
+    font-family:var(--font);
+    font-feature-settings:"palt" 1;      /* 日本語の文字詰め：これで一気に締まる */
+    letter-spacing:.01em;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
   .wrap{max-width:560px;margin:0 auto;padding:22px 18px calc(48px + env(safe-area-inset-bottom));}
-  h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:4px 0 6px;line-height:1.25}
-  h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:30px 0 12px}
+  h1{font-size:29px;font-weight:900;letter-spacing:-.03em;margin:4px 0 8px;line-height:1.3}
+  h2{font-size:19px;font-weight:700;letter-spacing:-.02em;margin:32px 0 12px}
   p.lead{font-size:14px;color:var(--fg2);margin:0 0 22px;line-height:1.7;white-space:pre-wrap}
   .loading{max-width:560px;margin:0 auto;padding:70px 18px;text-align:center;color:var(--fg2);font-size:14px}
   .page{display:none}
@@ -67,7 +77,7 @@
 
   /* ---- 進捗バー ---- */
   .ly-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
-  .ly-count{font-size:15px;color:var(--fg);font-weight:700;letter-spacing:-.01em}
+  .ly-count{font-size:15px;color:var(--fg);font-weight:700;letter-spacing:0;font-variant-numeric:tabular-nums}
   .ly-bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin:0 0 24px}
   .ly-bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
 
@@ -75,7 +85,7 @@
   .ly-card{border-radius:18px;padding:26px 22px;color:#fff;position:relative;overflow:hidden;margin-top:18px;
     box-shadow:0 10px 34px rgba(0,0,0,.16);animation:pop .5s cubic-bezier(.2,1.2,.4,1)}
   .ly-card .rar{font-size:11px;letter-spacing:3px;font-weight:800;opacity:.9}
-  .ly-card .lyr{font-size:22px;font-weight:700;line-height:1.75;margin:12px 0 10px;white-space:pre-wrap;letter-spacing:-.01em}
+  .ly-card .lyr{font-family:var(--font-mincho);font-size:22px;font-weight:700;line-height:1.75;margin:12px 0 10px;white-space:pre-wrap;letter-spacing:-.01em}
   .ly-card .song{font-size:13px;opacity:.85;font-weight:500}
   .ly-card .shine{position:absolute;top:-60%;left:-30%;width:55%;height:220%;background:rgba(255,255,255,.16);transform:rotate(25deg);animation:shine 2.6s ease-in-out infinite}
   @keyframes shine{0%{left:-40%}60%,100%{left:130%}}
@@ -129,7 +139,7 @@
   /* ---- チェックイン完了 ---- */
   .ci-done{text-align:center;padding:56px 10px}
   .ci-done .e{font-size:56px}
-  .ci-done .t{font-size:25px;font-weight:800;margin:16px 0 8px;letter-spacing:-.02em}
+  .ci-done .t{font-size:25px;font-weight:900;margin:16px 0 8px;letter-spacing:-.02em}
   .ci-done .s{font-size:15px;color:var(--fg2);line-height:1.7}
 
   /* ---- 当選（整理番号くじ） ---- */
@@ -142,7 +152,7 @@
   .prize-card .pmsg{font-size:13.5px;margin-top:12px;opacity:.95;line-height:1.7}
   .prize-card .tk{font-size:22px;font-weight:800;letter-spacing:2px;margin-top:14px}
   .win-badge{font-size:11px;color:#c98a00;font-weight:800;letter-spacing:3px;text-align:center}
-  .win-title{font-size:40px;font-weight:800;margin:8px 0 4px;text-align:center;letter-spacing:-.02em;
+  .win-title{font-size:42px;font-weight:800;margin:8px 0 4px;text-align:center;letter-spacing:-.02em;
     background:linear-gradient(90deg,#ff8a00,#ff2d55,#8a2be2);-webkit-background-clip:text;background-clip:text;color:transparent;
     animation:pop .55s cubic-bezier(.2,1.2,.4,1)}
   .lose{text-align:center;padding:34px 6px}
