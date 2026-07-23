@@ -5,107 +5,167 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>エンターテイナー製作委員会</title>
 <style>
-  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;margin:0;background:#f4f6f5;color:#1f2933}
-  .wrap{max-width:520px;margin:0 auto;padding:16px}
-  h1{font-size:18px;margin:8px 0 12px}
-  h2{font-size:15px;margin:22px 0 8px}
-  p.lead{font-size:13px;color:#667;margin:0 0 14px;line-height:1.6;white-space:pre-wrap}
-  label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
-  .req{color:#d64545;font-size:11px;margin-left:4px}
-  input,select,textarea{box-sizing:border-box;padding:10px;border:1px solid #cbd2d9;border-radius:8px;font-size:15px;background:#fff;width:100%}
-  textarea{min-height:110px}
-  .chips label{display:flex;align-items:center;font-weight:400;margin:6px 0;background:#fff;border:1px solid #cbd2d9;border-radius:10px;padding:11px 12px;font-size:14px}
-  .chips input{margin-right:10px;width:auto}
-  button{width:100%;margin-top:20px;padding:14px;border:none;border-radius:10px;background:#06C755;color:#fff;font-size:16px;font-weight:600}
-  button:disabled{background:#9bd6b3}
-  .msg{margin-top:12px;text-align:center;font-size:14px;min-height:20px}
+  :root{
+    --bg:#ffffff;
+    --bg2:#f5f5f7;
+    --fg:#111214;
+    --fg2:#8a8f98;
+    --line:#ececf0;
+    --accent:#fa233b;
+    --accent-soft:rgba(250,35,59,.10);
+    --radius:14px;
+    --shadow:0 1px 3px rgba(0,0,0,.05), 0 8px 24px rgba(0,0,0,.04);
+  }
+  *{-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:560px;margin:0 auto;padding:22px 18px calc(48px + env(safe-area-inset-bottom));}
+  h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:4px 0 6px;line-height:1.25}
+  h2{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:30px 0 12px}
+  p.lead{font-size:14px;color:var(--fg2);margin:0 0 22px;line-height:1.7;white-space:pre-wrap}
+  .loading{max-width:560px;margin:0 auto;padding:70px 18px;text-align:center;color:var(--fg2);font-size:14px}
   .page{display:none}
-  .loading{max-width:520px;margin:0 auto;padding:40px 16px;text-align:center;color:#889}
-  .card{background:#fff;border:1px solid #e1e6ea;border-radius:10px;padding:12px;margin-bottom:10px}
-  .row{display:flex;align-items:center;justify-content:space-between}
-  .card .d{font-weight:600;font-size:15px}
-  .card .sub{font-size:12px;color:#889;margin-top:4px}
-  .card button{width:auto;margin:0;padding:7px 14px;font-size:13px;border-radius:8px}
-  .card button.cancel{background:#fff;color:#d64545;border:1px solid #f0b3b3;font-weight:400}
-  .empty{color:#889;font-size:13px;text-align:center;padding:10px 0}
-  #tk_preview{margin-top:8px;max-width:100%;border-radius:8px;display:none}
-  /* くじ演出 */
-  .overlay{position:fixed;inset:0;background:rgba(15,23,25,.92);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:50}
-  .overlay.on{display:flex}
-  .spinner{width:90px;height:90px;border-radius:50%;border:8px solid rgba(255,255,255,.2);border-top-color:#06C755;animation:spin 1s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
-  .overlay .t{color:#fff;font-size:18px;margin-top:22px;letter-spacing:2px}
-  #confetti{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
-  .win-badge{font-size:14px;color:#c98a00;font-weight:700;letter-spacing:3px;text-align:center}
-  .win-title{font-size:38px;font-weight:800;margin:6px 0 4px;text-align:center;
-    background:linear-gradient(90deg,#ff8a00,#ff3d77,#8a2be2);-webkit-background-clip:text;background-clip:text;color:transparent;animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
-  @keyframes pop{0%{transform:scale(.5);opacity:0}100%{transform:scale(1);opacity:1}}
-  .prize-card{margin:14px auto 0;max-width:340px;border-radius:18px;padding:22px 18px;color:#fff;position:relative;overflow:hidden;
-    background:linear-gradient(135deg,#7b2ff7,#f107a3);box-shadow:0 12px 30px rgba(241,7,163,.35);animation:pop .7s .1s both}
-  .prize-card.onsite{background:linear-gradient(135deg,#11998e,#38ef7d);box-shadow:0 12px 30px rgba(17,153,142,.35)}
-  .prize-card .plabel{font-size:12px;opacity:.85;letter-spacing:2px}
-  .prize-card .pname{font-size:25px;font-weight:800;margin-top:6px;line-height:1.3}
-  .prize-card .pmsg{font-size:13px;margin-top:10px;opacity:.95;line-height:1.6}
-  .prize-card .tk{font-size:24px;font-weight:800;letter-spacing:2px;margin-top:10px}
-  .prize-card .shine{position:absolute;top:-60%;left:-30%;width:60%;height:220%;background:rgba(255,255,255,.25);transform:rotate(25deg);animation:shine 2.2s ease-in-out infinite}
+  .empty{color:var(--fg2);font-size:14px;text-align:center;padding:26px 0}
+
+  /* ---- フォーム ---- */
+  label{display:block;font-size:13px;font-weight:600;color:var(--fg2);margin:20px 0 7px;letter-spacing:.01em}
+  .req{color:var(--accent);font-size:11px;margin-left:6px;font-weight:600}
+  input,select,textarea{
+    box-sizing:border-box;width:100%;padding:14px 15px;border:none;border-radius:12px;
+    font-size:16px;background:var(--bg2);color:var(--fg);font-family:inherit;
+    appearance:none;-webkit-appearance:none;transition:box-shadow .15s}
+  select{background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8f98' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 15px center;padding-right:38px}
+  input:focus,select:focus,textarea:focus{outline:none;box-shadow:0 0 0 2px var(--accent) inset}
+  textarea{min-height:120px;line-height:1.7;resize:vertical}
+  input[type=file]{background:var(--bg2);padding:12px 15px;font-size:14px;color:var(--fg2)}
+
+  /* 選択リスト（チェック/ラジオ） */
+  .chips{background:var(--bg2);border-radius:12px;overflow:hidden}
+  .chips label{display:flex;align-items:center;margin:0;padding:15px;font-size:15px;font-weight:500;color:var(--fg);
+    border-bottom:1px solid rgba(0,0,0,.05)}
+  .chips label:last-child{border-bottom:none}
+  .chips input{width:auto;margin:0 12px 0 0;padding:0;accent-color:var(--accent);transform:scale(1.15)}
+
+  /* ---- ボタン ---- */
+  button{width:100%;margin-top:26px;padding:16px;border:none;border-radius:14px;
+    background:var(--accent);color:#fff;font-size:16px;font-weight:700;font-family:inherit;
+    letter-spacing:.01em;transition:transform .12s, opacity .15s}
+  button:active{transform:scale(.985);opacity:.9}
+  button:disabled{opacity:.45}
+
+  .msg{margin-top:14px;text-align:center;font-size:14px;color:var(--fg2);min-height:20px}
+
+  /* ---- カード ---- */
+  .card{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card .d{font-weight:700;font-size:17px;letter-spacing:-.01em}
+  .card .sub{font-size:13px;color:var(--fg2);margin-top:5px;line-height:1.6}
+  .card button{width:auto;margin:0;padding:9px 16px;font-size:14px;border-radius:10px;flex-shrink:0}
+  .card button.cancel{background:var(--bg2);color:var(--accent);font-weight:600}
+
+  /* ---- 進捗バー ---- */
+  .ly-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+  .ly-count{font-size:15px;color:var(--fg);font-weight:700;letter-spacing:-.01em}
+  .ly-bar{height:6px;background:var(--bg2);border-radius:99px;overflow:hidden;margin:0 0 24px}
+  .ly-bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+  /* ---- 歌詞カード ---- */
+  .ly-card{border-radius:18px;padding:26px 22px;color:#fff;position:relative;overflow:hidden;margin-top:18px;
+    box-shadow:0 10px 34px rgba(0,0,0,.16);animation:pop .5s cubic-bezier(.2,1.2,.4,1)}
+  .ly-card .rar{font-size:11px;letter-spacing:3px;font-weight:800;opacity:.9}
+  .ly-card .lyr{font-size:22px;font-weight:700;line-height:1.75;margin:12px 0 10px;white-space:pre-wrap;letter-spacing:-.01em}
+  .ly-card .song{font-size:13px;opacity:.85;font-weight:500}
+  .ly-card .shine{position:absolute;top:-60%;left:-30%;width:55%;height:220%;background:rgba(255,255,255,.16);transform:rotate(25deg);animation:shine 2.6s ease-in-out infinite}
   @keyframes shine{0%{left:-40%}60%,100%{left:130%}}
-  .lose{text-align:center;padding:24px 6px}
-  .lose .e{font-size:44px}
-  .lose .t{font-size:22px;font-weight:700;color:#66707a;margin:8px 0}
-  /* 歌詞くじ */
-  .ly-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .ly-count{font-size:13px;color:#667}
-  .ly-bar{height:8px;background:#e4e9ec;border-radius:99px;overflow:hidden;margin:6px 0 16px}
-  .ly-bar i{display:block;height:100%;background:linear-gradient(90deg,#06C755,#38ef7d)}
-  .ly-card{border-radius:16px;padding:22px 18px;color:#fff;position:relative;overflow:hidden;margin-top:14px;
-    animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
-  .ly-card .rar{font-size:12px;letter-spacing:3px;font-weight:700;opacity:.95}
-  .ly-card .lyr{font-size:21px;font-weight:700;line-height:1.7;margin:10px 0 8px;white-space:pre-wrap}
-  .ly-card .song{font-size:13px;opacity:.9}
-  .ly-card .shine{position:absolute;top:-60%;left:-30%;width:60%;height:220%;background:rgba(255,255,255,.22);transform:rotate(25deg);animation:shine 2.4s ease-in-out infinite}
-  .rN{background:linear-gradient(135deg,#5b6b78,#8fa3b0)}
-  .rR{background:linear-gradient(135deg,#1e6fd9,#4fc3f7)}
+  @keyframes pop{0%{transform:scale(.92);opacity:0}100%{transform:scale(1);opacity:1}}
+  .rN{background:linear-gradient(135deg,#4a5560,#7d8b97)}
+  .rR{background:linear-gradient(135deg,#1668d4,#4fc0f7)}
   .rSR{background:linear-gradient(135deg,#7b2ff7,#f107a3)}
-  .rUR{background:linear-gradient(135deg,#ff8a00,#ff3d77,#8a2be2);background-size:200% 200%;animation:pop .6s cubic-bezier(.2,1.4,.4,1),grad 4s ease infinite}
+  .rUR{background:linear-gradient(135deg,#ff8a00,#ff2d55,#8a2be2);background-size:200% 200%;
+    animation:pop .5s cubic-bezier(.2,1.2,.4,1),grad 5s ease infinite}
   @keyframes grad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-  .ly-links{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-  .ly-links a{flex:1;min-width:120px;text-align:center;text-decoration:none;padding:11px;border-radius:10px;
-    background:rgba(255,255,255,.18);color:#fff;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.35)}
-  .ly-audio{width:100%;margin-top:12px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:12px}
-  .cell{background:#fff;border:1px solid #e1e6ea;border-radius:10px;padding:10px 8px;font-size:11px;min-height:66px;
-    display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer}
-  .cell.lock{background:#eceff1;color:#b0bac1;cursor:default}
-  .cell .r{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:4px}
-  .cell .tx{line-height:1.4;overflow:hidden}
-  .badgeN{color:#5b6b78}.badgeR{color:#1e6fd9}.badgeSR{color:#7b2ff7}.badgeUR{color:#ff3d77}
-  /* 演出オーバーレイ（あとでmp4に差し替え可） */
-  #ly_ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:70;background:#0b0f12}
+  .ly-links{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+  .ly-links a{flex:1;min-width:130px;text-align:center;text-decoration:none;padding:12px;border-radius:11px;
+    background:rgba(255,255,255,.2);color:#fff;font-size:13px;font-weight:600;backdrop-filter:blur(6px)}
+  .ly-audio{width:100%;margin-top:16px;height:36px}
+
+  /* ---- コレクション ---- */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .cell{aspect-ratio:1;border-radius:12px;padding:10px;font-size:11px;
+    display:flex;flex-direction:column;justify-content:flex-end;text-align:left;cursor:pointer;
+    color:#fff;overflow:hidden;position:relative;box-shadow:var(--shadow);transition:transform .12s}
+  .cell:active{transform:scale(.96)}
+  .cell.lock{background:var(--bg2);color:#c3c7cc;cursor:default;box-shadow:none;justify-content:center;align-items:center;text-align:center}
+  .cell .r{position:absolute;top:9px;left:10px;font-size:10px;font-weight:800;letter-spacing:1.5px;opacity:.9}
+  .cell.lock .r{position:static;margin-bottom:4px;opacity:.6}
+  .cell .tx{line-height:1.45;font-weight:600;font-size:11.5px}
+  .cell:not(.lock).badgeN,.cell:not(.lock) .badgeN{}
+  .badgeN{color:#fff}.badgeR{color:#fff}.badgeSR{color:#fff}.badgeUR{color:#fff}
+
+  /* ---- ライブ履歴 ---- */
+  .lv{background:#fff;border-radius:var(--radius);padding:17px;margin-bottom:11px;box-shadow:var(--shadow)}
+  .lv.joined{box-shadow:0 1px 3px rgba(0,0,0,.05),0 8px 24px rgba(250,35,59,.10)}
+  .lv .ttl{font-weight:700;font-size:17px;line-height:1.45;letter-spacing:-.01em}
+  .lv .meta{font-size:13px;color:var(--fg2);margin-top:6px}
+  .lv .stamp{display:inline-block;font-size:11px;font-weight:700;padding:5px 11px;border-radius:99px;margin-top:11px;letter-spacing:.02em}
+  .lv .on{background:var(--accent-soft);color:var(--accent)}
+  .lv .off{background:var(--bg2);color:#a6acb3}
+  .lv .setbtn{margin-top:13px;padding:12px;font-size:14px;background:var(--bg2);color:var(--fg);
+    border-radius:11px;font-weight:600;width:100%}
+  .setlist{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);display:none}
+  .setlist ol{margin:0;padding-left:0;list-style:none;counter-reset:sl}
+  .setlist li{font-size:15px;line-height:1.6;padding:11px 0;border-bottom:1px solid var(--line);counter-increment:sl;
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:4px}
+  .setlist li:last-child{border-bottom:none}
+  .setlist li::before{content:counter(sl);width:22px;flex-shrink:0;color:var(--fg2);font-size:13px;font-weight:600}
+  .setlist .sname{font-weight:600}
+  .setlist .memo{font-size:11px;color:var(--fg2)}
+  .sllinks{display:flex;gap:7px;flex-basis:100%;margin:8px 0 2px 22px}
+  .sllinks a.sl{text-decoration:none;font-size:12px;font-weight:600;padding:6px 13px;border-radius:99px;
+    background:var(--bg2);color:var(--accent)}
+
+  /* ---- チェックイン完了 ---- */
+  .ci-done{text-align:center;padding:56px 10px}
+  .ci-done .e{font-size:56px}
+  .ci-done .t{font-size:25px;font-weight:800;margin:16px 0 8px;letter-spacing:-.02em}
+  .ci-done .s{font-size:15px;color:var(--fg2);line-height:1.7}
+
+  /* ---- 当選（整理番号くじ） ---- */
+  .prize-card{margin:16px auto 0;max-width:360px;border-radius:18px;padding:26px 20px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#7b2ff7,#f107a3);box-shadow:0 10px 34px rgba(241,7,163,.28);animation:pop .6s .05s both}
+  .prize-card.onsite{background:linear-gradient(135deg,#11998e,#38ef7d);box-shadow:0 10px 34px rgba(17,153,142,.28)}
+  .prize-card .shine{position:absolute;top:-60%;left:-30%;width:55%;height:220%;background:rgba(255,255,255,.2);transform:rotate(25deg);animation:shine 2.6s ease-in-out infinite}
+  .prize-card .plabel{font-size:11px;opacity:.85;letter-spacing:2.5px;font-weight:700}
+  .prize-card .pname{font-size:26px;font-weight:800;margin-top:8px;line-height:1.35;letter-spacing:-.01em}
+  .prize-card .pmsg{font-size:13.5px;margin-top:12px;opacity:.95;line-height:1.7}
+  .prize-card .tk{font-size:22px;font-weight:800;letter-spacing:2px;margin-top:14px}
+  .win-badge{font-size:11px;color:#c98a00;font-weight:800;letter-spacing:3px;text-align:center}
+  .win-title{font-size:40px;font-weight:800;margin:8px 0 4px;text-align:center;letter-spacing:-.02em;
+    background:linear-gradient(90deg,#ff8a00,#ff2d55,#8a2be2);-webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:pop .55s cubic-bezier(.2,1.2,.4,1)}
+  .lose{text-align:center;padding:34px 6px}
+  .lose .e{font-size:52px}
+  .lose .t{font-size:24px;font-weight:800;color:var(--fg2);margin:12px 0}
+
+  /* ---- 画像プレビュー ---- */
+  #tk_preview{margin-top:12px;max-width:100%;border-radius:12px;display:none}
+
+  /* ---- オーバーレイ ---- */
+  .overlay{position:fixed;inset:0;background:rgba(10,12,14,.94);display:none;align-items:center;justify-content:center;
+    flex-direction:column;z-index:50;backdrop-filter:blur(4px)}
+  .overlay.on{display:flex}
+  .spinner{width:74px;height:74px;border-radius:50%;border:6px solid rgba(255,255,255,.15);border-top-color:var(--accent);
+    animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .overlay .t{color:#fff;font-size:15px;margin-top:24px;letter-spacing:3px;font-weight:600}
+  #ly_ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:70;background:#0a0c0e}
   #ly_ov.on{display:flex}
   #ly_ov video{max-width:100%;max-height:100%}
-  .burstfx{width:160px;height:160px;border-radius:50%;position:relative;animation:zoom 1.6s ease-in-out infinite}
-  @keyframes zoom{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.15);opacity:1}}
-  /* ライブ参加履歴 */
-  .lv{background:#fff;border:1px solid #e1e6ea;border-radius:12px;padding:14px;margin-bottom:10px}
-  .lv.joined{border-color:#06C755;box-shadow:0 2px 10px rgba(6,199,85,.12)}
-  .lv .ttl{font-weight:700;font-size:15px;line-height:1.5}
-  .lv .meta{font-size:12px;color:#889;margin-top:5px}
-  .lv .stamp{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;margin-top:8px}
-  .lv .on{background:#e7f5ee;color:#06914a}
-  .lv .off{background:#eceff1;color:#9aa5ac}
-  .lv .setbtn{margin-top:10px;padding:9px;font-size:13px;background:#fff;color:#1f2933;border:1px solid #cbd2d9;border-radius:8px;font-weight:400;width:100%}
-  .setlist{margin-top:10px;border-top:1px dashed #dde;padding-top:10px;display:none}
-  .setlist ol{margin:0;padding-left:20px}
-  .setlist li{font-size:14px;line-height:1.9}
-  .setlist .sname{font-weight:600}
-  .setlist .memo{font-size:11px;color:#889;margin-left:6px}
-  .sllinks{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap}
-  .sllinks a.sl{text-decoration:none;font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;
-    background:#f0f4f6;color:#1f6feb;border:1px solid #d7e3ea}
-  .ci-done{text-align:center;padding:26px 10px}
-  .ci-done .e{font-size:48px}
-  .ci-done .t{font-size:22px;font-weight:800;margin:10px 0 4px}
-  .ci-done .s{font-size:14px;color:#667}
+  .burstfx{width:170px;height:170px;border-radius:50%;position:relative;animation:zoom 1.5s ease-in-out infinite}
+  @keyframes zoom{0%,100%{transform:scale(.88);opacity:.65}50%{transform:scale(1.18);opacity:1}}
+  #confetti{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
 </style>
 </head>
 <body>
@@ -589,9 +649,9 @@
     var s=lyState;
     document.getElementById('ly_grid').innerHTML = s.list.map(function(x,i){
       if(!x.has) return '<div class="cell lock"><div class="r">'+esc(x.rarity)+'</div><div class="tx">？？？</div></div>';
-      return '<div class="cell" onclick="lyShow(\''+esc(x.id)+'\')">'
-        + '<div class="r badge'+esc(x.rarity)+'">'+esc(x.rarity)+'</div>'
-        + '<div class="tx">'+esc(String(x.text).slice(0,14))+'</div></div>';
+      return '<div class="cell r'+esc(x.rarity)+'" onclick="lyShow(\''+esc(x.id)+'\')">'
+        + '<div class="r">'+esc(x.rarity)+'</div>'
+        + '<div class="tx">'+esc(String(x.text).slice(0,16))+'</div></div>';
     }).join('');
   }
   window.lyShow=function(id){
