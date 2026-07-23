@@ -251,7 +251,7 @@
     else if(page==='lost'){ showPage('lost'); initLost(); }
     else if(page==='ship'){ showPage('ship'); initShip(); }
     else if(page==='lyric'){ showPage('lyric'); initLyric(); }
-    else showPage('notready');
+    else { document.getElementById('page-notready').querySelector('p').textContent='page='+page; showPage('notready'); }
   }).catch(function(e){ fail('読み込みに失敗しました。もう一度開いてください。'); });
 
   /* ===== リマインド ===== */
