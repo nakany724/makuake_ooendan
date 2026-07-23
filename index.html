@@ -97,7 +97,11 @@
   .setlist{margin-top:10px;border-top:1px dashed #dde;padding-top:10px;display:none}
   .setlist ol{margin:0;padding-left:20px}
   .setlist li{font-size:14px;line-height:1.9}
+  .setlist .sname{font-weight:600}
   .setlist .memo{font-size:11px;color:#889;margin-left:6px}
+  .sllinks{display:flex;gap:6px;margin:4px 0 10px;flex-wrap:wrap}
+  .sllinks a.sl{text-decoration:none;font-size:12px;font-weight:600;padding:5px 11px;border-radius:99px;
+    background:#f0f4f6;color:#1f6feb;border:1px solid #d7e3ea}
   .ci-done{text-align:center;padding:26px 10px}
   .ci-done .e{font-size:48px}
   .ci-done .t{font-size:22px;font-weight:800;margin:10px 0 4px}
@@ -512,7 +516,13 @@
           set = '<button class="setbtn" onclick="toggleSet('+i+')">セットリストを見る</button>'
               + '<div class="setlist" id="set'+i+'"><ol>'
               + x.setlist.map(function(s){
-                  return '<li>'+esc(s.title)+(s.memo?'<span class="memo">'+esc(s.memo)+'</span>':'')+'</li>';
+                  var links='';
+                  if(s.youtube) links += '<a class="sl" href="'+esc(s.youtube)+'" target="_blank" rel="noopener">▶ YouTube</a>';
+                  if(s.music)   links += '<a class="sl" href="'+esc(s.music)+'" target="_blank" rel="noopener">♪ 配信で聴く</a>';
+                  return '<li><span class="sname">'+esc(s.title)+'</span>'
+                       + (s.memo?'<span class="memo">'+esc(s.memo)+'</span>':'')
+                       + (links?'<div class="sllinks">'+links+'</div>':'')
+                       + '</li>';
                 }).join('')
               + '</ol></div>';
         } else if(x.joined && !x.setlistPublic){
