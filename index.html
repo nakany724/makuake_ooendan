@@ -52,6 +52,39 @@
   .lose{text-align:center;padding:24px 6px}
   .lose .e{font-size:44px}
   .lose .t{font-size:22px;font-weight:700;color:#66707a;margin:8px 0}
+  /* 歌詞くじ */
+  .ly-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .ly-count{font-size:13px;color:#667}
+  .ly-bar{height:8px;background:#e4e9ec;border-radius:99px;overflow:hidden;margin:6px 0 16px}
+  .ly-bar i{display:block;height:100%;background:linear-gradient(90deg,#06C755,#38ef7d)}
+  .ly-card{border-radius:16px;padding:22px 18px;color:#fff;position:relative;overflow:hidden;margin-top:14px;
+    animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
+  .ly-card .rar{font-size:12px;letter-spacing:3px;font-weight:700;opacity:.95}
+  .ly-card .lyr{font-size:21px;font-weight:700;line-height:1.7;margin:10px 0 8px;white-space:pre-wrap}
+  .ly-card .song{font-size:13px;opacity:.9}
+  .ly-card .shine{position:absolute;top:-60%;left:-30%;width:60%;height:220%;background:rgba(255,255,255,.22);transform:rotate(25deg);animation:shine 2.4s ease-in-out infinite}
+  .rN{background:linear-gradient(135deg,#5b6b78,#8fa3b0)}
+  .rR{background:linear-gradient(135deg,#1e6fd9,#4fc3f7)}
+  .rSR{background:linear-gradient(135deg,#7b2ff7,#f107a3)}
+  .rUR{background:linear-gradient(135deg,#ff8a00,#ff3d77,#8a2be2);background-size:200% 200%;animation:pop .6s cubic-bezier(.2,1.4,.4,1),grad 4s ease infinite}
+  @keyframes grad{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .ly-links{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .ly-links a{flex:1;min-width:120px;text-align:center;text-decoration:none;padding:11px;border-radius:10px;
+    background:rgba(255,255,255,.18);color:#fff;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.35)}
+  .ly-audio{width:100%;margin-top:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:12px}
+  .cell{background:#fff;border:1px solid #e1e6ea;border-radius:10px;padding:10px 8px;font-size:11px;min-height:66px;
+    display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer}
+  .cell.lock{background:#eceff1;color:#b0bac1;cursor:default}
+  .cell .r{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:4px}
+  .cell .tx{line-height:1.4;overflow:hidden}
+  .badgeN{color:#5b6b78}.badgeR{color:#1e6fd9}.badgeSR{color:#7b2ff7}.badgeUR{color:#ff3d77}
+  /* 演出オーバーレイ（あとでmp4に差し替え可） */
+  #ly_ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:70;background:#0b0f12}
+  #ly_ov.on{display:flex}
+  #ly_ov video{max-width:100%;max-height:100%}
+  .burstfx{width:160px;height:160px;border-radius:50%;position:relative;animation:zoom 1.6s ease-in-out infinite}
+  @keyframes zoom{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.15);opacity:1}}
 </style>
 </head>
 <body>
@@ -97,6 +130,27 @@
     <button id="tk_send">登録する</button>
     <div class="msg" id="tk_msg"></div>
   </div>
+</div>
+
+<!-- ===== 今日の歌詞くじ ===== -->
+<div class="wrap page" id="page-lyric">
+  <h1>今日の歌詞くじ</h1>
+  <p class="lead">1日1回、歌詞の一節が引けます。同じものは出ないので、集めてコンプリートを目指そう！</p>
+
+  <div class="ly-head">
+    <span class="ly-count" id="ly_count">－</span>
+    <span class="ly-count" id="ly_status"></span>
+  </div>
+  <div class="ly-bar"><i id="ly_bar" style="width:0%"></i></div>
+
+  <button id="ly_draw">今日のくじを引く</button>
+  <div class="msg" id="ly_msg"></div>
+
+  <div id="ly_result"></div>
+
+  <h2>コレクション</h2>
+  <div class="grid" id="ly_grid"></div>
+  <div id="ly_detail"></div>
 </div>
 
 <!-- ===== プレゼントの配送先登録 ===== -->
@@ -145,6 +199,7 @@
 </div>
 
 <div class="overlay" id="overlay"><div class="spinner"></div><div class="t">抽選中…</div></div>
+<div id="ly_ov"><div id="ly_ov_inner"></div></div>
 <canvas id="confetti"></canvas>
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -195,6 +250,7 @@
     else if(page==='ticket'){ showPage('ticket'); initTicket(); }
     else if(page==='lost'){ showPage('lost'); initLost(); }
     else if(page==='ship'){ showPage('ship'); initShip(); }
+    else if(page==='lyric'){ showPage('lyric'); initLyric(); }
     else showPage('notready');
   }).catch(function(e){ fail('読み込みに失敗しました。もう一度開いてください。'); });
 
@@ -393,6 +449,97 @@
       else { ctx.clearRect(0,0,cv.width,cv.height); cv.style.display='none'; }
     })();
   }
+
+  /* ===== 歌詞くじ ===== */
+  // 演出動画を入れる場合はここにファイル名を書く（GitHubの同じ場所に置く）
+  // 例: {N:'fx_n.mp4', R:'fx_r.mp4', SR:'fx_sr.mp4', UR:'fx_ur.mp4'}
+  var FX = { N:'', R:'', SR:'', UR:'' };
+  var FX_MS = { N:1200, R:1600, SR:2200, UR:2800 };  // 動画が無いときのCSS演出の長さ
+  var lyState = null;
+
+  function initLyric(){
+    post({action:'getLyricState',userId:profile.userId}).then(function(res){
+      if(!res||!res.ok) return;
+      lyState=res;
+      renderLyric();
+    }).catch(function(){});
+  }
+  function renderLyric(){
+    var s=lyState;
+    document.getElementById('ly_count').textContent = s.owned+' / '+s.total+' 種類';
+    var pct = s.total? Math.round(s.owned/s.total*100):0;
+    document.getElementById('ly_bar').style.width = pct+'%';
+    var btn=document.getElementById('ly_draw'), st=document.getElementById('ly_status');
+    if(s.complete){ btn.style.display='none'; st.textContent='コンプリート！🎉'; }
+    else if(s.drewToday){ btn.style.display='none'; st.textContent='今日はもう引きました'; }
+    else { btn.style.display='block'; btn.disabled=false; st.textContent=''; }
+    // 今日引いたものがあれば表示
+    if(s.today){ document.getElementById('ly_result').innerHTML = cardHtml(s.today, true); }
+    renderGrid();
+  }
+  function renderGrid(){
+    var s=lyState;
+    document.getElementById('ly_grid').innerHTML = s.list.map(function(x,i){
+      if(!x.has) return '<div class="cell lock"><div class="r">'+esc(x.rarity)+'</div><div class="tx">？？？</div></div>';
+      return '<div class="cell" onclick="lyShow(\''+esc(x.id)+'\')">'
+        + '<div class="r badge'+esc(x.rarity)+'">'+esc(x.rarity)+'</div>'
+        + '<div class="tx">'+esc(String(x.text).slice(0,14))+'</div></div>';
+    }).join('');
+  }
+  window.lyShow=function(id){
+    var item=null;
+    lyState.list.forEach(function(x){ if(x.id===id&&x.has) item=x; });
+    if(!item) return;
+    var el=document.getElementById('ly_detail');
+    el.innerHTML = cardHtml(item, false);
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+  };
+  function cardHtml(x, isToday){
+    var links='';
+    if(x.youtube) links += '<a href="'+esc(x.youtube)+'" target="_blank" rel="noopener">YouTubeで聴く</a>';
+    if(x.music)   links += '<a href="'+esc(x.music)+'" target="_blank" rel="noopener">音楽配信で聴く</a>';
+    var audio = x.audio ? '<audio class="ly-audio" controls preload="none" src="'+esc(x.audio)+'"></audio>' : '';
+    return '<div class="ly-card r'+esc(x.rarity)+'"><div class="shine"></div>'
+      + '<div class="rar">'+esc(x.rarity)+(isToday?'　今日の一節':'')+'</div>'
+      + '<div class="lyr">'+esc(x.text)+'</div>'
+      + '<div class="song">'+esc(x.song)+'</div>'
+      + audio
+      + (links?'<div class="ly-links">'+links+'</div>':'')
+      + '</div>';
+  }
+  // 演出（mp4があれば再生／無ければCSS演出）
+  function playFx(rarity){
+    return new Promise(function(resolve){
+      var ov=document.getElementById('ly_ov'), inner=document.getElementById('ly_ov_inner');
+      var file=FX[rarity]||'';
+      ov.classList.add('on');
+      if(file){
+        inner.innerHTML='<video src="'+file+'" autoplay playsinline muted></video>';
+        var v=inner.querySelector('video');
+        var done=function(){ ov.classList.remove('on'); inner.innerHTML=''; resolve(); };
+        v.onended=done;
+        setTimeout(done, 8000); // 保険
+      } else {
+        var color={N:'#8fa3b0',R:'#4fc3f7',SR:'#f107a3',UR:'#ff8a00'}[rarity]||'#8fa3b0';
+        inner.innerHTML='<div class="burstfx" style="background:radial-gradient(circle,'+color+',transparent 70%)"></div>';
+        setTimeout(function(){ ov.classList.remove('on'); inner.innerHTML=''; resolve(); }, FX_MS[rarity]||1500);
+      }
+    });
+  }
+  document.getElementById('ly_draw').onclick=function(){
+    var btn=this; btn.disabled=true; setMsg('ly_msg','');
+    post({action:'drawLyric',name:profile.displayName,userId:profile.userId})
+      .then(function(res){
+        if(!res||!res.ok){ setMsg('ly_msg',(res&&res.error)||'エラーが発生しました'); btn.disabled=false; return; }
+        return playFx(res.item.rarity).then(function(){
+          document.getElementById('ly_result').innerHTML = cardHtml(res.item, true);
+          document.getElementById('ly_result').scrollIntoView({behavior:'smooth',block:'center'});
+          if(res.item.rarity==='SR'||res.item.rarity==='UR') burst();
+          initLyric();  // 状態を更新
+        });
+      })
+      .catch(function(err){ setMsg('ly_msg','通信エラー: '+err.message); btn.disabled=false; });
+  };
 
   /* ===== 配送 ===== */
   function initShip(){
