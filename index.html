@@ -85,6 +85,23 @@
   #ly_ov video{max-width:100%;max-height:100%}
   .burstfx{width:160px;height:160px;border-radius:50%;position:relative;animation:zoom 1.6s ease-in-out infinite}
   @keyframes zoom{0%,100%{transform:scale(.9);opacity:.7}50%{transform:scale(1.15);opacity:1}}
+  /* ライブ参加履歴 */
+  .lv{background:#fff;border:1px solid #e1e6ea;border-radius:12px;padding:14px;margin-bottom:10px}
+  .lv.joined{border-color:#06C755;box-shadow:0 2px 10px rgba(6,199,85,.12)}
+  .lv .ttl{font-weight:700;font-size:15px;line-height:1.5}
+  .lv .meta{font-size:12px;color:#889;margin-top:5px}
+  .lv .stamp{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;margin-top:8px}
+  .lv .on{background:#e7f5ee;color:#06914a}
+  .lv .off{background:#eceff1;color:#9aa5ac}
+  .lv .setbtn{margin-top:10px;padding:9px;font-size:13px;background:#fff;color:#1f2933;border:1px solid #cbd2d9;border-radius:8px;font-weight:400;width:100%}
+  .setlist{margin-top:10px;border-top:1px dashed #dde;padding-top:10px;display:none}
+  .setlist ol{margin:0;padding-left:20px}
+  .setlist li{font-size:14px;line-height:1.9}
+  .setlist .memo{font-size:11px;color:#889;margin-left:6px}
+  .ci-done{text-align:center;padding:26px 10px}
+  .ci-done .e{font-size:48px}
+  .ci-done .t{font-size:22px;font-weight:800;margin:10px 0 4px}
+  .ci-done .s{font-size:14px;color:#667}
 </style>
 </head>
 <body>
@@ -130,6 +147,22 @@
     <button id="tk_send">登録する</button>
     <div class="msg" id="tk_msg"></div>
   </div>
+</div>
+
+<!-- ===== ライブ参加履歴 ===== -->
+<div class="wrap page" id="page-live">
+  <h1>ライブ参加履歴</h1>
+  <p class="lead">チェックインしたライブが記録されます。セットリストは公開されると見られます。</p>
+  <div class="ly-head">
+    <span class="ly-count" id="lv_count">－</span>
+  </div>
+  <div class="ly-bar"><i id="lv_bar" style="width:0%"></i></div>
+  <div id="lv_list"></div>
+</div>
+
+<!-- ===== チェックイン（QRから） ===== -->
+<div class="wrap page" id="page-checkin">
+  <div id="ci_body"><div class="empty">チェックイン中…</div></div>
 </div>
 
 <!-- ===== 今日の歌詞くじ ===== -->
@@ -228,6 +261,15 @@
   function post(payload){ return fetch(GAS_URL,{method:'POST',body:JSON.stringify(payload)}).then(function(r){return r.json();}); }
   function closeIt(){ try{ if(liff.isInClient()) liff.closeWindow(); }catch(e){} }
 
+  function getParam(name){
+    var u=new URL(location.href);
+    var v=u.searchParams.get(name); if(v) return v;
+    var st=u.searchParams.get('liff.state');
+    if(st){ var q=(decodeURIComponent(st).split('?')[1]||'');
+            return new URLSearchParams(q).get(name)||''; }
+    return '';
+  }
+
   function getPage(){
     var u=new URL(location.href);
     var st=u.searchParams.get('liff.state');
@@ -251,7 +293,9 @@
     else if(page==='lost'){ showPage('lost'); initLost(); }
     else if(page==='ship'){ showPage('ship'); initShip(); }
     else if(page==='lyric'){ showPage('lyric'); initLyric(); }
-    else { document.getElementById('page-notready').querySelector('p').textContent='page='+page; showPage('notready'); }
+    else if(page==='live'){ showPage('live'); initLive(); }
+    else if(page==='checkin'){ showPage('checkin'); doCheckin(); }
+    else showPage('notready');
   }).catch(function(e){ fail('読み込みに失敗しました。もう一度開いてください。'); });
 
   /* ===== リマインド ===== */
@@ -448,6 +492,60 @@
       if(Date.now()-t0<4500) requestAnimationFrame(frame);
       else { ctx.clearRect(0,0,cv.width,cv.height); cv.style.display='none'; }
     })();
+  }
+
+  /* ===== ライブ参加履歴 ===== */
+  function initLive(){
+    post({action:'getLiveState',userId:profile.userId}).then(function(res){
+      if(!res||!res.ok) return;
+      document.getElementById('lv_count').textContent='参加 '+res.joined+' / '+res.total+' 公演';
+      var pct=res.total?Math.round(res.joined/res.total*100):0;
+      document.getElementById('lv_bar').style.width=pct+'%';
+      var list=res.list||[];
+      if(list.length===0){ document.getElementById('lv_list').innerHTML='<div class="empty">公演がまだ登録されていません。</div>'; return; }
+      document.getElementById('lv_list').innerHTML=list.map(function(x,i){
+        var stamp = x.joined
+          ? '<span class="stamp on">✓ 参加済み</span>'
+          : '<span class="stamp off">未参加</span>';
+        var set='';
+        if(x.joined && x.setlist && x.setlist.length){
+          set = '<button class="setbtn" onclick="toggleSet('+i+')">セットリストを見る</button>'
+              + '<div class="setlist" id="set'+i+'"><ol>'
+              + x.setlist.map(function(s){
+                  return '<li>'+esc(s.title)+(s.memo?'<span class="memo">'+esc(s.memo)+'</span>':'')+'</li>';
+                }).join('')
+              + '</ol></div>';
+        } else if(x.joined && !x.setlistPublic){
+          set = '<div class="meta" style="margin-top:8px">セットリストは公開までお待ちください</div>';
+        }
+        return '<div class="lv'+(x.joined?' joined':'')+'">'
+          + '<div class="ttl">'+esc(x.title)+'</div>'
+          + '<div class="meta">'+esc(x.date)+(x.place?(' / '+esc(x.place)):'')+'</div>'
+          + stamp + set + '</div>';
+      }).join('');
+    }).catch(function(){});
+  }
+  window.toggleSet=function(i){
+    var el=document.getElementById('set'+i);
+    el.style.display = (el.style.display==='block'?'none':'block');
+  };
+
+  /* ===== チェックイン（QRから開かれる） ===== */
+  function doCheckin(){
+    var code=getParam('code');
+    var box=document.getElementById('ci_body');
+    if(!code){ box.innerHTML='<div class="empty">コードが読み取れませんでした。会場のQRをもう一度読み取ってください。</div>'; return; }
+    post({action:'checkinLive',code:code,name:profile.displayName,userId:profile.userId})
+      .then(function(res){
+        if(!res||!res.ok){ box.innerHTML='<div class="empty">'+esc((res&&res.error)||'エラーが発生しました')+'</div>'; return; }
+        var l=res.live||{};
+        box.innerHTML='<div class="ci-done"><div class="e">'+(res.already?'✅':'🎉')+'</div>'
+          + '<div class="t">'+(res.already?'チェックイン済みです':'チェックイン完了！')+'</div>'
+          + '<div class="s">'+esc(l.title||'')+'<br>'+esc(l.date||'')+(l.place?(' / '+esc(l.place)):'')+'</div>'
+          + '<p class="lead" style="margin-top:18px;text-align:center">ご来場ありがとうございます！<br>「ライブ履歴」から参加記録が見られます。</p></div>';
+        if(!res.already) burst();
+      })
+      .catch(function(err){ box.innerHTML='<div class="empty">通信エラー: '+esc(err.message)+'</div>'; });
   }
 
   /* ===== 歌詞くじ ===== */
