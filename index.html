@@ -22,7 +22,7 @@
        ・より柔らかく    → "Zen Kaku Gothic New"
        ・より硬質・技術的 → "IBM Plex Sans JP"
        ・情緒的（明朝）  → "Shippori Mincho B1" */
-    --font: "Inter","IBM Plex Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
+    --font: "Inter","Noto Sans JP",-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif;
     --font-mincho: "Shippori Mincho B1","Hiragino Mincho ProN",serif;
   }
   *{-webkit-tap-highlight-color:transparent}
@@ -183,6 +183,33 @@
   @keyframes zoom{0%,100%{transform:scale(.88);opacity:.65}50%{transform:scale(1.18);opacity:1}}
   #confetti{position:fixed;inset:0;pointer-events:none;z-index:60;display:none}
 
+  /* ---- 団員証 ---- */
+  .idcard{position:relative;overflow:hidden;border-radius:20px;padding:26px 24px 24px;color:#fff;
+    box-shadow:0 14px 40px rgba(0,0,0,.22);animation:pop .5s cubic-bezier(.2,1.2,.4,1)}
+  .idcard.member{background:linear-gradient(135deg,#3b4753 0%,#6c7a89 45%,#2f3945 100%)}
+  .idcard.cap{background:linear-gradient(135deg,#8a6314 0%,#e6c069 40%,#b8862f 70%,#f3dc9a 100%);
+    color:#3a2a05;box-shadow:0 14px 40px rgba(184,134,47,.35)}
+  .idcard.staff{background:linear-gradient(135deg,#0e1013 0%,#23282e 50%,#0a0c0f 100%);
+    box-shadow:0 14px 40px rgba(0,0,0,.4)}
+  .idc-sheen{position:absolute;top:-70%;left:-35%;width:55%;height:240%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+    transform:rotate(22deg);animation:shine 4.5s ease-in-out infinite}
+  .idc-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .idc-org{font-size:10.5px;font-weight:700;letter-spacing:.12em;opacity:.75}
+  .idc-role{font-size:11px;font-weight:800;letter-spacing:.1em;padding:5px 12px;border-radius:99px;
+    background:rgba(255,255,255,.22);backdrop-filter:blur(4px)}
+  .idcard.cap .idc-role{background:rgba(58,42,5,.18)}
+  .idc-no{font-size:46px;font-weight:900;letter-spacing:-.03em;margin-top:26px;line-height:1;
+    font-variant-numeric:tabular-nums}
+  .idc-no .lbl{font-size:16px;font-weight:700;opacity:.6;margin-right:6px;letter-spacing:0}
+  .idc-name{font-size:19px;font-weight:800;letter-spacing:-.02em;margin-top:10px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .idc-stats{display:flex;gap:26px;margin-top:26px;padding-top:18px;border-top:1px solid rgba(255,255,255,.22)}
+  .idcard.cap .idc-stats{border-top-color:rgba(58,42,5,.2)}
+  .idc-stats b{display:block;font-size:24px;font-weight:900;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .idc-stats i{font-style:normal;font-size:14px;opacity:.6;font-weight:700}
+  .idc-stats span{display:block;font-size:11px;opacity:.7;margin-top:3px;font-weight:600;letter-spacing:.04em}
+
   /* ---- 挨拶ヘッダー ---- */
   .hello{margin:2px 0 26px}
   .hello-g{font-size:14px;color:var(--fg2);font-weight:600;letter-spacing:.02em}
@@ -251,6 +278,12 @@
     <button id="tk_send">登録する</button>
     <div class="msg" id="tk_msg"></div>
   </div>
+</div>
+
+<!-- ===== 団員証 ===== -->
+<div class="wrap page" id="page-card">
+  <h1>団員証</h1>
+  <div id="cd_body"><div class="empty">読み込み中…</div></div>
 </div>
 
 <!-- ===== ヘルプ（できること一覧） ===== -->
@@ -410,6 +443,7 @@
     else if(page==='lyric'){ showPage('lyric'); initLyric(); }
     else if(page==='live'){ showPage('live'); initLive(); }
     else if(page==='help'){ showPage('help'); initHelp(); }
+    else if(page==='card'){ showPage('card'); initCard(); }
     else if(page==='checkin'){ showPage('checkin'); doCheckin(); }
     else showPage('notready');
   }).catch(function(e){ fail('読み込みに失敗しました。もう一度開いてください。'); });
@@ -610,8 +644,44 @@
     })();
   }
 
+  /* ===== 団員証 ===== */
+  function roleClass(role){
+    if(role==='隊長') return 'cap';
+    if(role==='スタッフ') return 'staff';
+    return 'member';
+  }
+  function initCard(){
+    post({action:'getMyCard',userId:profile.userId}).then(function(res){
+      var box=document.getElementById('cd_body');
+      if(!res||!res.ok){ box.innerHTML='<div class="empty">読み込みに失敗しました。</div>'; return; }
+      if(!res.issued){
+        box.innerHTML='<div class="card"><div class="d">団員番号は発行準備中です</div>'
+          + '<div class="sub">運営で発行のうえ、個別にご連絡します。もうしばらくお待ちください。</div></div>';
+        return;
+      }
+      var cls=roleClass(res.role);
+      var nm=res.name || profile.displayName || '';
+      box.innerHTML =
+        '<div class="idcard '+cls+'">'
+        + '<div class="idc-sheen"></div>'
+        + '<div class="idc-top"><span class="idc-org">エンターテイナー製作委員会</span>'
+        + '<span class="idc-role">'+esc(res.role)+'</span></div>'
+        + '<div class="idc-no"><span class="lbl">No.</span>'+esc(res.no)+'</div>'
+        + '<div class="idc-name">'+esc(nm)+'</div>'
+        + '<div class="idc-stats">'
+        +   '<div><b>'+res.joinedLives+'</b><span>参加ライブ</span></div>'
+        +   '<div><b>'+res.lyricOwned+'<i>/'+res.lyricTotal+'</i></b><span>歌詞コレクション</span></div>'
+        + '</div>'
+        + '</div>'
+        + '<p class="lead" style="margin-top:18px;text-align:center">スクリーンショットで保存できます。</p>';
+    }).catch(function(){
+      document.getElementById('cd_body').innerHTML='<div class="empty">読み込みに失敗しました。</div>';
+    });
+  }
+
   /* ===== ヘルプ ===== */
   var FEATURES = [
+    { icon:'🪪', name:'団員証', desc:'あなたの団員番号と、これまでの活動記録が見られます。', page:'card', word:'団員証' },
     { icon:'🎴', name:'今日の歌詞くじ', desc:'1日1回、歌詞の一節が引けます。集めてコンプリートを目指そう。', page:'lyric', word:'歌詞くじ' },
     { icon:'🎤', name:'ライブ参加履歴', desc:'参加したライブの記録と、公開されたセットリストが見られます。', page:'live', word:'ライブ履歴' },
     { icon:'🎫', name:'整理番号の登録／確認', desc:'チケットの整理番号を登録。当日はここからくじが引けます。', page:'ticket', word:'整理番号' },
