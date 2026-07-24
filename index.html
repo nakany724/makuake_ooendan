@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>エンターテイナー製作委員会</title>
+<title>幕明け応援団アプリ_demo β</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Shippori+Mincho+B1:wght@700&display=swap" rel="stylesheet">
@@ -296,7 +296,7 @@
 
 <!-- ===== リマインド設定 ===== -->
 <div class="wrap page" id="page-remind">
-  <h1>ライブのリマインド設定</h1>
+  <h1>「エンターテイナー Reprise」<br>リマインド設定</h1>
   <p class="lead" id="rmd_lead"></p>
   <label>いつ思い出したいですか?（複数選べます）</label>
   <div class="chips" id="rmd_presets"></div>
@@ -514,7 +514,8 @@
 
   function initRemind(){
     document.getElementById('rmd_lead').textContent =
-      LIVE_TITLE + '\n（2027年6月12日）のチケット、忘れないように思い出す日を設定できます。設定した日の20時にお知らせします。';
+      'この設定は 2027年6月12日 の公演専用です。\n'
+      + LIVE_TITLE + '\nチケットを忘れないよう、思い出したい日を選んでください。設定した日の20時にお知らせします。';
     var tdy=todayStr();
     var html=PRESETS.map(function(n){
       var d=minusDays(LIVE_DATE,n); if(d<tdy) return '';
@@ -742,7 +743,7 @@
     { icon:'🎤', name:'ライブ参加履歴', desc:'参加したライブの記録と、公開されたセットリストが見られます。', page:'live', word:'ライブ履歴' },
     { icon:'🎫', name:'整理番号の登録／確認', desc:'チケットの整理番号を登録。当日はここからくじが引けます。', page:'ticket', word:'整理番号' },
     { icon:'🎁', name:'くじを引く', desc:'ライブ当日、登録した整理番号でくじが引けます。', page:'ticket', word:'くじを引く' },
-    { icon:'⏰', name:'ライブのリマインド', desc:'チケットを忘れないよう、思い出したい日に通知します。', page:'remind', word:'リマインド' },
+    { icon:'⏰', name:'Reprise リマインド', desc:'2027.6.12「エンターテイナー Reprise」のチケットを忘れないよう通知します。', page:'remind', word:'リマインド' },
     { icon:'📮', name:'プレゼントの配送先登録', desc:'ステッカー＆オリジナルフラッグの送り先を登録できます。', page:'ship', word:'配送' },
     { icon:'💌', name:'おたよりを送る', desc:'ラジオへのおたよりや質問など、企画に応じて投稿できます。', page:'', word:'おたより' },
     { icon:'🔍', name:'チケット紛失のご連絡', desc:'紛失された場合はこちらから運営にご連絡ください。', page:'lost', word:'紛失' },
@@ -769,7 +770,7 @@
       +   '<span class="hero-tag">NEXT LIVE</span>'
       +   '<div class="hero-t">エンターテイナー<br>Reprise</div>'
       +   '<div class="hero-d">2027.06.12 &nbsp;/&nbsp; 長利和季ワンマンライブ</div>'
-      +   '<span class="hero-cta">リマインドを設定する →</span>'
+      +   '<span class="hero-cta">この公演のリマインドを設定 →</span>'
       + '</div></div>';
   }
 
@@ -820,7 +821,7 @@
       + '<div class="foot">'
       +   '<div class="foot-h">トークで使える言葉</div>'
       +   '<div class="words">'+words+'</div>'
-      +   '<div class="foot-c">エンターテイナー製作委員会</div>'
+      +   '<div class="foot-c">幕明け応援団アプリ_demo β</div>'
       + '</div>';
   }
 
