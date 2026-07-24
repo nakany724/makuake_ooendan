@@ -219,20 +219,76 @@
   .hello-no b{color:var(--accent);font-size:16px;font-weight:800;margin-left:3px;font-variant-numeric:tabular-nums}
   .hello-no .pending{color:#a6acb3;font-weight:600}
 
-  /* ---- ヘルプ ---- */
-  .hp{display:flex;align-items:center;gap:14px;background:#fff;border-radius:12px;
-    padding:16px;margin-bottom:12px;box-shadow:4px 4px 0 rgba(0,0,0,.06);cursor:pointer;transition:transform .12s}
-  .hp:active{transform:scale(.985)}
-  .hp.static{cursor:default}
-  .hp-ic{font-size:24px;width:42px;height:42px;flex-shrink:0;border-radius:12px;background:var(--bg2);
-    display:flex;align-items:center;justify-content:center}
-  .hp-tx{flex:1;min-width:0}
-  .hp-n{font-size:16.5px;font-weight:800;letter-spacing:-.02em}
-  .hp-d{font-size:12.5px;color:var(--fg2);margin-top:3px;line-height:1.55}
-  .hp-ar{color:#c8ccd2;font-size:22px;font-weight:400;flex-shrink:0}
+  /* ---- ヘルプ＝サイト風トップ ---- */
+  .site{max-width:560px;margin:0 auto;padding:0 0 calc(56px + env(safe-area-inset-bottom))}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 18px 16px}
+  .hello-g{font-size:12.5px;color:var(--fg2);font-weight:600;letter-spacing:.02em}
+  .hello-n{font-size:20px;font-weight:900;letter-spacing:-.03em;margin-top:2px;line-height:1.3}
+  .hello-no{font-size:12px;font-weight:700;color:var(--fg2);background:var(--bg2);
+    padding:8px 13px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+  .hello-no b{color:var(--accent);font-size:15px;font-weight:900;margin-left:3px;font-variant-numeric:tabular-nums}
+  .hello-no .pending{color:#a6acb3;font-weight:700}
+
+  /* ヒーロー */
+  .hero{position:relative;margin:0 18px;border-radius:18px;overflow:hidden;cursor:pointer;
+    box-shadow:0 12px 34px rgba(0,0,0,.16);transition:transform .14s}
+  .hero:active{transform:scale(.985)}
+  .hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1b1f24 0%,#3a2440 40%,#8a1c3c 75%,#fa233b 100%)}
+  .hero-bg::after{content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 78% 22%,rgba(255,255,255,.22),transparent 55%)}
+  .hero-in{position:relative;padding:30px 22px 26px;color:#fff}
+  .hero-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.18em;
+    padding:5px 11px;border-radius:99px;background:rgba(255,255,255,.2);backdrop-filter:blur(4px)}
+  .hero-t{font-size:34px;font-weight:900;letter-spacing:-.035em;line-height:1.16;margin:16px 0 10px}
+  .hero-d{font-size:12.5px;opacity:.85;font-weight:600;letter-spacing:.02em}
+  .hero-cta{display:inline-block;margin-top:22px;font-size:13px;font-weight:800;
+    padding:11px 18px;border-radius:99px;background:#fff;color:#16181c}
+
+  /* セクション */
+  .sec{margin-top:36px;padding:0 18px}
+  .sec-h h2{margin:0 0 14px;font-size:22px;font-weight:900;letter-spacing:-.03em}
+
+  /* カテゴリタイル */
+  .cats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .cat{background:#fff;border-radius:14px;padding:16px 14px 15px;cursor:pointer;
+    box-shadow:4px 4px 0 rgba(0,0,0,.06);transition:transform .12s}
+  .cat:active{transform:scale(.97)}
+  .cat-ic{font-size:22px;width:40px;height:40px;border-radius:11px;background:var(--bg2);
+    display:flex;align-items:center;justify-content:center;margin-bottom:11px}
+  .cat-n{font-size:14.5px;font-weight:800;letter-spacing:-.02em;line-height:1.35}
+  .cat-d{font-size:11.5px;color:var(--fg2);margin-top:5px;line-height:1.5;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* 横スクロール */
+  .scroller{display:flex;gap:14px;overflow-x:auto;padding:2px 18px 6px;margin:0 -18px;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .scroller::-webkit-scrollbar{display:none}
+  .pick{flex:0 0 148px;scroll-snap-align:start;cursor:pointer;transition:transform .12s}
+  .pick:active{transform:scale(.97)}
+  .pick-th{height:148px;border-radius:12px;box-shadow:5px 5px 0 rgba(0,0,0,.08)}
+  .pick-t{font-size:14.5px;font-weight:800;letter-spacing:-.02em;margin-top:11px;line-height:1.35}
+  .pick-s{font-size:11.5px;color:var(--fg2);margin-top:3px;line-height:1.5}
+  .p1{background:linear-gradient(135deg,#7b2ff7,#f107a3)}
+  .p2{background:linear-gradient(135deg,#3b4753,#8fa3b0)}
+  .p3{background:linear-gradient(135deg,#1668d4,#4fc0f7)}
+  .p4{background:linear-gradient(135deg,#ff8a00,#ff2d55)}
+
+  /* そのほか */
+  .note{display:flex;gap:13px;align-items:flex-start;background:#fff;border-radius:12px;
+    padding:15px;margin-bottom:10px;box-shadow:4px 4px 0 rgba(0,0,0,.05)}
+  .note-ic{font-size:20px;width:36px;height:36px;border-radius:10px;background:var(--bg2);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .note-n{font-size:14.5px;font-weight:800;letter-spacing:-.02em}
+  .note-d{font-size:12px;color:var(--fg2);margin-top:4px;line-height:1.6}
+
+  /* フッター */
+  .foot{margin-top:40px;padding:28px 18px 0;border-top:1px solid var(--line)}
+  .foot-h{font-size:12px;font-weight:800;color:var(--fg2);letter-spacing:.06em;margin-bottom:12px}
   .words{display:flex;flex-wrap:wrap;gap:8px}
-  .words .w{font-size:13px;font-weight:600;padding:9px 14px;border-radius:99px;
-    background:var(--bg2);color:var(--fg)}
+  .words .w{font-size:12.5px;font-weight:700;padding:9px 14px;border-radius:99px;
+    background:var(--bg2);color:var(--fg);cursor:pointer}
+  .foot-c{margin-top:26px;font-size:11px;color:#b6bcc3;font-weight:600;letter-spacing:.05em}
+
 </style>
 </head>
 <body>
@@ -287,14 +343,14 @@
 </div>
 
 <!-- ===== ヘルプ（できること一覧） ===== -->
-<div class="wrap page" id="page-help">
-  <div id="hp_hello"></div>
-  <h1>できること</h1>
-  <p class="lead">このアカウントで使える機能の一覧です。タップするとその画面が開きます。</p>
-  <div id="hp_list"></div>
-  <h2>トークで使える言葉</h2>
-  <p class="lead" style="margin-bottom:8px">下の言葉をトークに送ると、それぞれの画面が開きます。</p>
-  <div id="hp_words"></div>
+<div class="page" id="page-help">
+  <div class="site">
+    <div id="hp_hello"></div>
+    <div id="hp_hero"></div>
+    <div id="hp_cats"></div>
+    <div id="hp_pick"></div>
+    <div id="hp_foot"></div>
+  </div>
 </div>
 
 <!-- ===== ライブ参加履歴 ===== -->
@@ -698,28 +754,76 @@
 
   function initHelp(){
     renderHello();
-    document.getElementById('hp_list').innerHTML =
-      FEATURES.map(function(f,i){
-        var tap = f.page ? ' onclick="goPage(\''+f.page+'\')"' : ' onclick="sayWord(\''+esc(f.word)+'\')"';
-        return '<div class="hp"'+tap+'>'
-          + '<div class="hp-ic">'+f.icon+'</div>'
-          + '<div class="hp-tx"><div class="hp-n">'+esc(f.name)+'</div>'
-          + '<div class="hp-d">'+esc(f.desc)+'</div></div>'
-          + '<div class="hp-ar">›</div></div>';
-      }).join('')
-      + '<h2>そのほか</h2>'
-      + NOTES.map(function(f){
-        return '<div class="hp static">'
-          + '<div class="hp-ic">'+f.icon+'</div>'
-          + '<div class="hp-tx"><div class="hp-n">'+esc(f.name)+'</div>'
-          + '<div class="hp-d">'+esc(f.desc)+'</div></div></div>';
-      }).join('');
-
-    document.getElementById('hp_words').innerHTML =
-      '<div class="words">' + FEATURES.filter(function(f){return f.word;})
-        .map(function(f){ return '<span class="w">'+esc(f.word)+'</span>'; }).join('')
-      + '<span class="w">ヘルプ</span></div>';
+    renderHero();
+    renderCats();
+    renderPick();
+    renderFoot();
   }
+
+  // ヒーロー（大バナー）
+  function renderHero(){
+    document.getElementById('hp_hero').innerHTML =
+      '<div class="hero" onclick="goPage(\'remind\')">'
+      + '<div class="hero-bg"></div>'
+      + '<div class="hero-in">'
+      +   '<span class="hero-tag">NEXT LIVE</span>'
+      +   '<div class="hero-t">エンターテイナー<br>Reprise</div>'
+      +   '<div class="hero-d">2027.06.12 &nbsp;/&nbsp; 長利和季ワンマンライブ</div>'
+      +   '<span class="hero-cta">リマインドを設定する →</span>'
+      + '</div></div>';
+  }
+
+  // カテゴリ（タイル）
+  function renderCats(){
+    var html = '<div class="sec"><div class="sec-h"><h2>メニュー</h2></div><div class="cats">';
+    html += FEATURES.map(function(f){
+      var tap = f.page ? ' onclick="goPage(\''+f.page+'\')"' : ' onclick="sayWord(\''+esc(f.word)+'\')"';
+      return '<div class="cat"'+tap+'><div class="cat-ic">'+f.icon+'</div>'
+        + '<div class="cat-n">'+esc(f.name)+'</div>'
+        + '<div class="cat-d">'+esc(f.desc)+'</div></div>';
+    }).join('');
+    html += '</div></div>';
+    document.getElementById('hp_cats').innerHTML = html;
+  }
+
+  // ピックアップ（横スクロール）
+  var PICKS = [
+    { t:'今日の歌詞くじ', s:'1日1回・集めてコンプリート', page:'lyric', c:'p1' },
+    { t:'団員証',         s:'あなたの番号と活動記録',     page:'card',  c:'p2' },
+    { t:'ライブ参加履歴', s:'セットリストも見られる',     page:'live',  c:'p3' },
+    { t:'整理番号の登録', s:'当日はここからくじが引ける', page:'ticket',c:'p4' }
+  ];
+  function renderPick(){
+    var html = '<div class="sec"><div class="sec-h"><h2>ピックアップ</h2></div><div class="scroller">';
+    html += PICKS.map(function(x){
+      return '<div class="pick" onclick="goPage(\''+x.page+'\')">'
+        + '<div class="pick-th '+x.c+'"></div>'
+        + '<div class="pick-t">'+esc(x.t)+'</div>'
+        + '<div class="pick-s">'+esc(x.s)+'</div></div>';
+    }).join('');
+    html += '</div></div>';
+    document.getElementById('hp_pick').innerHTML = html;
+  }
+
+  // フッター
+  function renderFoot(){
+    var words = FEATURES.filter(function(f){return f.word;})
+      .map(function(f){ return '<span class="w" onclick="sayWord(\''+esc(f.word)+'\')">'+esc(f.word)+'</span>'; }).join('')
+      + '<span class="w" onclick="sayWord(\'ヘルプ\')">ヘルプ</span>';
+    var notes = NOTES.map(function(f){
+      return '<div class="note"><span class="note-ic">'+f.icon+'</span>'
+        + '<div><div class="note-n">'+esc(f.name)+'</div>'
+        + '<div class="note-d">'+esc(f.desc)+'</div></div></div>';
+    }).join('');
+    document.getElementById('hp_foot').innerHTML =
+      '<div class="sec"><div class="sec-h"><h2>そのほか</h2></div>'+notes+'</div>'
+      + '<div class="foot">'
+      +   '<div class="foot-h">トークで使える言葉</div>'
+      +   '<div class="words">'+words+'</div>'
+      +   '<div class="foot-c">エンターテイナー製作委員会</div>'
+      + '</div>';
+  }
+
   function greetWord(){
     var h=new Date().getHours();
     if(h>=5 && h<10) return 'おはようございます';
@@ -729,9 +833,9 @@
   function renderHello(){
     var nm = profile.displayName || 'ゲスト';
     document.getElementById('hp_hello').innerHTML =
-      '<div class="hello">'
-      + '<div class="hello-g">' + esc(greetWord()) + '</div>'
-      + '<div class="hello-n">' + esc(nm) + ' さん</div>'
+      '<div class="topbar">'
+      + '<div><div class="hello-g">' + esc(greetWord()) + '</div>'
+      + '<div class="hello-n">' + esc(nm) + ' さん</div></div>'
       + '<div class="hello-no" id="hp_no">団員番号 <b>—</b></div>'
       + '</div>';
     post({action:'getMyNo',userId:profile.userId}).then(function(res){
@@ -739,13 +843,12 @@
       if(res && res.ok && res.no!=='' && res.no!=null){
         el.innerHTML='団員番号 <b>'+esc(res.no)+'</b>';
       } else {
-        el.innerHTML='<span class="pending">団員番号は発行準備中です</span>';
+        el.innerHTML='<span class="pending">番号は発行準備中</span>';
       }
     }).catch(function(){});
   }
 
-  // 同じミニアプリ内で別の画面へ
-  window.goPage=function(p){ location.href = '?page=' + encodeURIComponent(p); };  // おたよりのように、トークで言葉を送って使う機能の案内
+  window.goPage=function(p){ location.href = '?page=' + encodeURIComponent(p); };
   window.sayWord=function(w){
     alert('トーク画面で「'+w+'」と送ると使えます。\nこの画面を閉じてお試しください。');
   };
